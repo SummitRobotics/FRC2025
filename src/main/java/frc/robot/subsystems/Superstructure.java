@@ -29,14 +29,14 @@ public class Superstructure extends SubsystemBase {
     public static enum SuperstructurePreset {
         STOW(0, 0, 0, 0, "Stow"),
         RECEIVE(0, 0, 0, 0, "Receive"),
-        L1(0, 0, 0, 0, "L1"),
-        L2(0, 0, 0, 0, "L2"),
-        L3(0, 0, 0, 0, "L3"),
-        L4(0, 0, 0, 0, "L4"),
-        L1_GO(0, 0, 0.2, 0.2, "L1"),
-        L2_GO(0, 0, 0.2, 0.2, "L2"),
-        L3_GO(0, 0, 0.2, 0.2, "L3"),
-        L4_GO(0, 0, 0.2, 0.2, "L4"),
+        L1(0, 0, 0, 0, "1"),
+        L2(0, 0, 0, 0, "2"),
+        L3(0, 0, 0, 0, "3"),
+        L4(0, 0, 0, 0, "4"),
+        L1_GO(0, 0, 0.2, 0.2, "1"),
+        L2_GO(0, 0, 0.2, 0.2, "2"),
+        L3_GO(0, 0, 0.2, 0.2, "3"),
+        L4_GO(0, 0, 0.2, 0.2, "4"),
         NONE(0, 0, 0, 0, "None"); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRadians;
@@ -49,6 +49,16 @@ public class Superstructure extends SubsystemBase {
             this.leftBelt = leftBelt;
             this.rightBelt = rightBelt;
             this.name = name;
+        }
+
+        public static SuperstructurePreset getCorrespondingGoState(SuperstructurePreset preset) {
+            switch (preset) {
+                case L1: return L1_GO;
+                case L2: return L2_GO;
+                case L3: return L3_GO;
+                case L4: return L4_GO;
+                default: return NONE;
+            }
         }
     }
 
