@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -35,7 +37,7 @@ public class Scrubber extends SubsystemBase {
         return this.run(() -> scrubber.getClosedLoopController().setReference(preset.encoder, ControlType.kPosition));
     }
 
-    public Command setManual(double encoder) {
-        return this.run(() -> scrubber.getClosedLoopController().setReference(encoder, ControlType.kPosition));
+    public Command setManual(DoubleSupplier encoder) {
+        return this.run(() -> scrubber.getClosedLoopController().setReference(encoder.getAsDouble(), ControlType.kPosition));
     }
 }

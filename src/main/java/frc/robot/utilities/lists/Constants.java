@@ -10,6 +10,12 @@ public class Constants {
     public static final String
         RIO_BUS_NAME = "rio",
         CANIVORE_BUS_NAME = "canivore";
+    public static class OI {
+        public static int
+            DRIVER_XBOX = 0,
+            GUNNER_XBOX = 1,
+            BUTTON_BOX = 2;
+    }
     public static class Elevator {
         public static final int
             ELEVATOR_ID_A = 0,
@@ -26,7 +32,8 @@ public class Constants {
             kG = 0,
             kV = 0,
             kA = 0,
-            MAX_ROTATIONS = 0;
+            MAX_ROTATIONS = 0,
+            ROTATION_TOLERANCE = 5;
     }
 
     public static class Manipulator {
@@ -41,7 +48,12 @@ public class Constants {
             PIVOT_RATIO = 0,
             P = 0,
             I = 0,
-            D = 0;
+            D = 0,
+            // A feedforward to overcome friction (will need to reverse direction depending on movement - not sure how to apply this setting to the controller.)
+            // FF = 0,
+            ROTATION_TOLERANCE = 0.03490659, // Radians
+            MAX_VELOCITY = 60,
+            MAX_ACCEL = 120;
     }
 
     public static class Scrubber {
