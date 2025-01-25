@@ -8,8 +8,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 public class Constants {
     // TODO - set all of these
     public static final String
-        RIO_BUS_NAME = "rio",
-        CANIVORE_BUS_NAME = "canivore";
+        RIO_BUS_NAME = "rio";
+        // CANIVORE_BUS_NAME = "canivore";
     public static class OI {
         public static int
             DRIVER_XBOX = 0,
@@ -18,8 +18,8 @@ public class Constants {
     }
     public static class Elevator {
         public static final int
-            ELEVATOR_ID_A = 0,
-            ELEVATOR_ID_B = 0;
+            ELEVATOR_ID_A = 10,
+            ELEVATOR_ID_B = 11;
         public static final AngularVelocity
             ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
         public static final AngularAcceleration
@@ -38,10 +38,10 @@ public class Constants {
 
     public static class Manipulator {
         public static final int
-            BELT_LEFT_ID = 0,
-            BELT_RIGHT_ID = 0,
-            PIVOT_ID = 0,
-            CANCODER_ID = 0;
+            BELT_LEFT_ID = 12,
+            BELT_RIGHT_ID = 13,
+            PIVOT_ID = 14,
+            CANCODER_ID = 15;
         public static final double
             MAX_RADIANS = 0,
             MIN_RADIANS = 0,
@@ -58,7 +58,7 @@ public class Constants {
 
     public static class Scrubber {
         public static final int
-            SCRUBBER_ID = 0;
+            SCRUBBER_ID = 16;
         public static final double
             P = 0,
             I = 0,
