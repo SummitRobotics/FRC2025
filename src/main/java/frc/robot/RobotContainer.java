@@ -56,16 +56,41 @@ public class RobotContainer {
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
-    private final SendableChooser<Node> nodeChooser;
+    private final SendableChooser<SuperstructurePreset> lChooser;
+    private final SendableChooser<HexSide> hexSideChooser;
+    private final SendableChooser<Side> leftRightChooser;
 
     public RobotContainer() {
         autoChooser = AutoBuilder.buildAutoChooser("Tests");
-        nodeChooser = new SendableChooser<Node>();
-        nodeChooser.addOption("3L", new Node(SuperstructurePreset.L4, HexSide.THREE_BLUE, Side.LEFT));
-        nodeChooser.addOption("1R", new Node(SuperstructurePreset.L4, HexSide.ONE_BLUE, Side.RIGHT));
-        nodeChooser.setDefaultOption("5L", new Node(SuperstructurePreset.L4, HexSide.FIVE_BLUE, Side.LEFT));
+        lChooser = new SendableChooser<SuperstructurePreset>();
+        hexSideChooser = new SendableChooser<HexSide>();
+        leftRightChooser = new SendableChooser<Side>();
+        lChooser.setDefaultOption("L1", SuperstructurePreset.L1);
+        lChooser.addOption("L2", SuperstructurePreset.L2);
+        lChooser.addOption("L3", SuperstructurePreset.L3);
+        lChooser.addOption("L4", SuperstructurePreset.L4);
+        hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
+        hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
+        hexSideChooser.addOption("3", AutoPlace.HexSide.THREE);
+        hexSideChooser.addOption("4", AutoPlace.HexSide.FOUR);
+        hexSideChooser.addOption("5", AutoPlace.HexSide.FIVE);
+        hexSideChooser.addOption("6", AutoPlace.HexSide.SIX);
+        leftRightChooser.setDefaultOption("Left", AutoPlace.Side.LEFT);
+        leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
+        // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
+        lChooser.onChange((SuperstructurePreset l) -> {
+            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        });
+        hexSideChooser.onChange((HexSide hexSide) -> {
+            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
+        });
+        leftRightChooser.onChange((leftRight) -> {
+            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
+        });
         SmartDashboard.putData("Auto Mode", autoChooser);
-        SmartDashboard.putData("Node chooser", nodeChooser);
+        SmartDashboard.putData("L Chooser", lChooser);
+        SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
+        SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         configureBindings();
         FollowPathCommand.warmupCommand().schedule();
         PathfindingCommand.warmupCommand().schedule();
@@ -109,7 +134,7 @@ public class RobotContainer {
         buttonBox.getTrigger(Button.MO_PRESET).whileTrue(scrubber.setManual(() -> gunnerXBox.x().getAsBoolean() ? Constants.Scrubber.MAX_ROTATIONS : 0));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, nodeChooser.getSelected()));
+        driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
     }
 
     public Command getAutonomousCommand() {
