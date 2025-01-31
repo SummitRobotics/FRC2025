@@ -68,4 +68,18 @@ public class Constants {
             kV = 0,
             MAX_ROTATIONS = 0;
     }
+
+    public static class Climb {
+        public static final int
+            CLIMB_ID = 0;
+        public static final double
+            P = 0,
+            I = 0,
+            D = 0,
+            kG = 0,
+            kS = 0,
+            kV = 0,
+            kA = 0,
+            MAX_ROTATIONS = 0;
+    }
 }

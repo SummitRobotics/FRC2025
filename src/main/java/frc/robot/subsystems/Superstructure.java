@@ -68,7 +68,7 @@ public class Superstructure extends SubsystemBase {
     private final TalonFX
         elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A, Constants.RIO_BUS_NAME),
         elevatorB = new TalonFX(Constants.Elevator.ELEVATOR_ID_B, Constants.RIO_BUS_NAME);
-    private final MotionMagicVoltage mmVoltageReq = new MotionMagicVoltage(0);
+    private final MotionMagicVoltage mmVoltageReq = new MotionMagicVoltage(0).withSlot(0);
     private final Follower followReq = new Follower(Constants.Elevator.ELEVATOR_ID_A, false);
     // Manipulator
     private final SparkMax
