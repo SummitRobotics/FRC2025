@@ -21,34 +21,39 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.oi.ButtonBox;
+import frc.robot.oi.ButtonBox.Button;
 import frc.robot.utilities.lists.Constants;
 
 public class Superstructure extends SubsystemBase {
 
     // State machine with encoder presets
     public static enum SuperstructurePreset {
-        STOW(0, 0, 0, 0, "Stow"),
-        RECEIVE(0, 0, 0, 0, "Receive"),
-        L1(0, 0, 0, 0, "1"),
-        L2(0, 0, 0, 0, "2"),
-        L3(0, 0, 0, 0, "3"),
-        L4(0, 0, 0, 0, "4"),
-        L1_GO(0, 0, 0.2, 0.2, "1"),
-        L2_GO(0, 0, 0.2, 0.2, "2"),
-        L3_GO(0, 0, 0.2, 0.2, "3"),
-        L4_GO(0, 0, 0.2, 0.2, "4"),
-        NONE(0, 0, 0, 0, "None"); // being manually overridden to something
+        STOW_LOWER(0, 0, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
+        STOW_UPPER(0, 0, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
+        RECEIVE(0, 0, 0, 0, "Receive", Button.RECEIVE_PRESET),
+        L1(0, 0, 0, 0, "1", Button.L1_PRESET),
+        L2(0, 0, 0, 0, "2", Button.L2_PRESET),
+        L3(0, 0, 0, 0, "3", Button.L3_PRESET),
+        L4(0, 0, 0, 0, "4", Button.L4_PRESET),
+        L1_GO(0, 0, 0.2, 0.2, "1", null),
+        L2_GO(0, 0, 0.2, 0.2, "2", null),
+        L3_GO(0, 0, 0.2, 0.2, "3", null),
+        L4_GO(0, 0, 0.2, 0.2, "4", null),
+        NONE(0, 0, 0, 0, "None", null); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRadians;
         public double leftBelt;
         public double rightBelt;
         public String name;
-        SuperstructurePreset(double elevatorRotations, double pivotRadians, double leftBelt, double rightBelt, String name) {
+        public Button button;
+        SuperstructurePreset(double elevatorRotations, double pivotRadians, double leftBelt, double rightBelt, String name, Button button) {
             this.elevatorRotations = elevatorRotations;
             this.pivotRadians = pivotRadians;
             this.leftBelt = leftBelt;
             this.rightBelt = rightBelt;
             this.name = name;
+            this.button = button;
         }
 
         public static SuperstructurePreset getCorrespondingGoState(SuperstructurePreset preset) {
@@ -57,12 +62,12 @@ public class Superstructure extends SubsystemBase {
                 case L2: return L2_GO;
                 case L3: return L3_GO;
                 case L4: return L4_GO;
-                default: return NONE;
+                default: return preset;
             }
         }
     }
 
-    private SuperstructurePreset state = SuperstructurePreset.STOW;
+    private SuperstructurePreset state = SuperstructurePreset.STOW_LOWER;
 
     // Elevator
     private final TalonFX
@@ -78,7 +83,10 @@ public class Superstructure extends SubsystemBase {
     private final CANcoder pivotCancoder = new CANcoder(Constants.Manipulator.CANCODER_ID);
     private double pivotEncoderTarget = 0; // This is a little finicky but I can't figure out how to directly read closed loop error from the Spark Flex.
 
-    public Superstructure() {
+    // Button box LED compatability
+    ButtonBox buttonBox;
+
+    public Superstructure(ButtonBox buttonBox) {
         // Elevator
         // For elevator control see https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/device-specific/talonfx/motion-magic.html
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -113,7 +121,18 @@ public class Superstructure extends SubsystemBase {
         pivotConfig.softLimit.forwardSoftLimitEnabled(true);
         pivot.configure(pivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        setPreset(SuperstructurePreset.STOW);
+        setPreset(SuperstructurePreset.STOW_LOWER);
+
+        this.buttonBox = buttonBox;
+    }
+
+    @Override
+    public void periodic() {
+        // Button box LEDs
+        buttonBox.allLED(false);
+        if (state.button != null) {
+            buttonBox.LED(state.button, true);
+        }
     }
 
     // Set elevator position
