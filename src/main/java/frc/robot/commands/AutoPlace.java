@@ -4,7 +4,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -86,13 +86,15 @@ public class AutoPlace extends SequentialCommandGroup {
             // AutoBuilder.pathfindToPose(node.hexSide.waypoint, constraints, 0),
             // TODO - this line is meant to add another directional align step but does not properly turn the robot
             // drivetrain.applyRequest(() -> turnRequest).until(() -> drivetrain.getState().Pose.getRotation().minus(node.hexSide.waypoint.getRotation()).getDegrees() < 5),
-            AutoBuilder.pathfindThenFollowPath(path, constraints),
-            superstructure.setPreset(node.l).until(() -> superstructure.atSetpoint()),
-            new ParallelRaceGroup(
-                superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l)),
-                new WaitCommand(1)
+            new ParallelDeadlineGroup(
+                AutoBuilder.pathfindThenFollowPath(path, constraints),
+                superstructure.setPreset(node.l)//.until(() -> superstructure.atSetpoint())
             ),
-            superstructure.setPreset(SuperstructurePreset.STOW)
+            new ParallelDeadlineGroup(
+                new WaitCommand(1),
+                superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
+            ),
+            superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
         );
         // addRequirements(drivetrain, superstructure); // Is this necessary?
     }

@@ -8,13 +8,15 @@ public class ButtonBox extends GenericHID {
 
     public enum Button {
 
-        STOW_PRESET(1, "Stow"),
-        RECEIVE_PRESET(2, "Receive"),
-        L1_PRESET(3, "L1"),
-        L2_PRESET(4, "L2"),
-        L3_PRESET(5, "L3"),
-        L4_PRESET(6, "L4"),
-        MO_PRESET(10, "MO"); // Missile switch 1
+        STOW_LOWER_PRESET(1, "Stow Lower"),
+        STOW_UPPER_PRESET(2, "Stow Upper"),
+        RECEIVE_PRESET(3, "Receive"),
+        L1_PRESET(4, "L1"),
+        L2_PRESET(5, "L2"),
+        L3_PRESET(6, "L3"),
+        L4_PRESET(7, "L4"),
+        MO_PRESET(10, "MO"), // Missile switch 1
+        GO_PRESET(8, "Go");
         public int index;
         public String name;
 
