@@ -214,6 +214,42 @@
               "period": 0.06,
               "show_type": true
             }
+          },
+          {
+            "title": "L Chooser",
+            "x": 896.0,
+            "y": 0.0,
+            "width": 640.0,
+            "height": 128.0,
+            "type": "Split Button Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/L Chooser",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Hex Side Chooser",
+            "x": 896.0,
+            "y": 128.0,
+            "width": 640.0,
+            "height": 128.0,
+            "type": "Split Button Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Hex Side Chooser",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Left-Right Chooser",
+            "x": 896.0,
+            "y": 256.0,
+            "width": 640.0,
+            "height": 128.0,
+            "type": "Split Button Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Left-Right Chooser",
+              "period": 0.06
+            }
           }
         ]
       }

@@ -57,96 +57,93 @@ public class RobotContainer {
     
     // Path follower
     private final SendableChooser<Command> autoChooser;
-    // private final SendableChooser<SuperstructurePreset> lChooser;
-    // private final SendableChooser<HexSide> hexSideChooser;
-    // private final SendableChooser<Side> leftRightChooser;
+    private final SendableChooser<SuperstructurePreset> lChooser;
+    private final SendableChooser<HexSide> hexSideChooser;
+    private final SendableChooser<Side> leftRightChooser;
 
     // Node chooser
-    private Side leftRight = Side.LEFT;
-    private SuperstructurePreset l = SuperstructurePreset.L1;
-    private HexSide hexSide = HexSide.ONE;
+    // private Side leftRight = Side.LEFT;
+    // private SuperstructurePreset l = SuperstructurePreset.L1;
+    // private HexSide hexSide = HexSide.ONE;
+    // private Command generateSelectCommand(HexSide hexSide, Side leftRight) {
+        // return new InstantCommand(() -> {
+            // this.hexSide = hexSide;
+            // this.leftRight = leftRight;
+            // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
+        // });
+    // }
+    // private final Command generateSelectCommand(SuperstructurePreset l) {
+        // return new InstantCommand(() -> {
+            // this.l = l;
+            // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
+        // });
+    // }
 
-    private Command generateSelectCommand(HexSide hexSide, Side leftRight) {
-        return new InstantCommand(() -> {
-            this.hexSide = hexSide;
-            this.leftRight = leftRight;
-            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
-        });
-    }
-
-    private final Command generateSelectCommand(SuperstructurePreset l) {
-        return new InstantCommand(() -> {
-            this.l = l;
-            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
-        });
-
-    }
-
-    private final Command
-        selectOneLeft = generateSelectCommand(HexSide.ONE, Side.LEFT),
-        selectOneRight = generateSelectCommand(HexSide.ONE, Side.RIGHT),
-        selectTwoLeft = generateSelectCommand(HexSide.TWO, Side.LEFT),
-        selectTwoRight = generateSelectCommand(HexSide.TWO, Side.RIGHT),
-        selectThreeLeft = generateSelectCommand(HexSide.THREE, Side.LEFT),
-        selectThreeRight = generateSelectCommand(HexSide.THREE, Side.RIGHT),
-        selectFourLeft = generateSelectCommand(HexSide.FOUR, Side.LEFT),
-        selectFourRight = generateSelectCommand(HexSide.FOUR, Side.RIGHT),
-        selectFiveLeft = generateSelectCommand(HexSide.FIVE, Side.LEFT),
-        selectFiveRight = generateSelectCommand(HexSide.FIVE, Side.RIGHT),
-        selectSixLeft = generateSelectCommand(HexSide.SIX, Side.LEFT),
-        selectSixRight = generateSelectCommand(HexSide.SIX, Side.RIGHT),
-        selectL1 = generateSelectCommand(SuperstructurePreset.L1),
-        selectL2 = generateSelectCommand(SuperstructurePreset.L2),
-        selectL3 = generateSelectCommand(SuperstructurePreset.L3),
-        selectL4 = generateSelectCommand(SuperstructurePreset.L4);
+    // private final Command
+        // selectOneLeft = generateSelectCommand(HexSide.ONE, Side.LEFT),
+        // selectOneRight = generateSelectCommand(HexSide.ONE, Side.RIGHT),
+        // selectTwoLeft = generateSelectCommand(HexSide.TWO, Side.LEFT),
+        // selectTwoRight = generateSelectCommand(HexSide.TWO, Side.RIGHT),
+        // selectThreeLeft = generateSelectCommand(HexSide.THREE, Side.LEFT),
+        // selectThreeRight = generateSelectCommand(HexSide.THREE, Side.RIGHT),
+        // selectFourLeft = generateSelectCommand(HexSide.FOUR, Side.LEFT),
+        // selectFourRight = generateSelectCommand(HexSide.FOUR, Side.RIGHT),
+        // selectFiveLeft = generateSelectCommand(HexSide.FIVE, Side.LEFT),
+        // selectFiveRight = generateSelectCommand(HexSide.FIVE, Side.RIGHT),
+        // selectSixLeft = generateSelectCommand(HexSide.SIX, Side.LEFT),
+        // selectSixRight = generateSelectCommand(HexSide.SIX, Side.RIGHT),
+        // selectL1 = generateSelectCommand(SuperstructurePreset.L1),
+        // selectL2 = generateSelectCommand(SuperstructurePreset.L2),
+        // selectL3 = generateSelectCommand(SuperstructurePreset.L3),
+        // selectL4 = generateSelectCommand(SuperstructurePreset.L4);
 
     public RobotContainer() {
         autoChooser = AutoBuilder.buildAutoChooser("Tests");
-        // lChooser = new SendableChooser<SuperstructurePreset>();
-        // hexSideChooser = new SendableChooser<HexSide>();
-        // leftRightChooser = new SendableChooser<Side>();
-        // lChooser.setDefaultOption("L1", SuperstructurePreset.L1);
-        // lChooser.addOption("L2", SuperstructurePreset.L2);
-        // lChooser.addOption("L3", SuperstructurePreset.L3);
-        // lChooser.addOption("L4", SuperstructurePreset.L4);
-        // hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
-        // hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
-        // hexSideChooser.addOption("3", AutoPlace.HexSide.THREE);
-        // hexSideChooser.addOption("4", AutoPlace.HexSide.FOUR);
-        // hexSideChooser.addOption("5", AutoPlace.HexSide.FIVE);
-        // hexSideChooser.addOption("6", AutoPlace.HexSide.SIX);
-        // leftRightChooser.setDefaultOption("Left", AutoPlace.Side.LEFT);
-        // leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
+        lChooser = new SendableChooser<SuperstructurePreset>();
+        hexSideChooser = new SendableChooser<HexSide>();
+        leftRightChooser = new SendableChooser<Side>();
+        lChooser.setDefaultOption("L1", SuperstructurePreset.L1);
+        lChooser.addOption("L2", SuperstructurePreset.L2);
+        lChooser.addOption("L3", SuperstructurePreset.L3);
+        lChooser.addOption("L4", SuperstructurePreset.L4);
+        hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
+        hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
+        hexSideChooser.addOption("3", AutoPlace.HexSide.THREE);
+        hexSideChooser.addOption("4", AutoPlace.HexSide.FOUR);
+        hexSideChooser.addOption("5", AutoPlace.HexSide.FIVE);
+        hexSideChooser.addOption("6", AutoPlace.HexSide.SIX);
+        leftRightChooser.setDefaultOption("Left", AutoPlace.Side.LEFT);
+        leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
-        // lChooser.onChange((SuperstructurePreset l) -> {
-            // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
-        // });
-        // hexSideChooser.onChange((HexSide hexSide) -> {
-            // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
-        // });
-        // leftRightChooser.onChange((leftRight) -> {
-            // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
-        // });
-        // SmartDashboard.putData("L Chooser", lChooser);
-        // SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
-        // SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
+        lChooser.onChange((SuperstructurePreset l) -> {
+            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        });
+        hexSideChooser.onChange((HexSide hexSide) -> {
+            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
+        });
+        leftRightChooser.onChange((leftRight) -> {
+            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
+        });
+        SmartDashboard.putData("L Chooser", lChooser);
+        SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
+        SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Auto Mode", autoChooser);
-        SmartDashboard.putData("One Left", selectOneLeft);
-        SmartDashboard.putData("One Right", selectOneRight);
-        SmartDashboard.putData("Two Left", selectTwoLeft);
-        SmartDashboard.putData("Two Right", selectTwoRight);
-        SmartDashboard.putData("Three Left", selectThreeLeft);
-        SmartDashboard.putData("Three Right", selectThreeRight);
-        SmartDashboard.putData("Four Left", selectFourLeft);
-        SmartDashboard.putData("Four Right", selectFourRight);
-        SmartDashboard.putData("Five Left", selectFiveLeft);
-        SmartDashboard.putData("Five Right", selectFiveRight);
-        SmartDashboard.putData("Six Left", selectSixLeft);
-        SmartDashboard.putData("Six Right", selectSixRight);
-        SmartDashboard.putData("L1", selectL1);
-        SmartDashboard.putData("L2", selectL2);
-        SmartDashboard.putData("L3", selectL3);
-        SmartDashboard.putData("L4", selectL4);
+        // SmartDashboard.putData("One Left", selectOneLeft);
+        // SmartDashboard.putData("One Right", selectOneRight);
+        // SmartDashboard.putData("Two Left", selectTwoLeft);
+        // SmartDashboard.putData("Two Right", selectTwoRight);
+        // SmartDashboard.putData("Three Left", selectThreeLeft);
+        // SmartDashboard.putData("Three Right", selectThreeRight);
+        // SmartDashboard.putData("Four Left", selectFourLeft);
+        // SmartDashboard.putData("Four Right", selectFourRight);
+        // SmartDashboard.putData("Five Left", selectFiveLeft);
+        // SmartDashboard.putData("Five Right", selectFiveRight);
+        // SmartDashboard.putData("Six Left", selectSixLeft);
+        // SmartDashboard.putData("Six Right", selectSixRight);
+        // SmartDashboard.putData("L1", selectL1);
+        // SmartDashboard.putData("L2", selectL2);
+        // SmartDashboard.putData("L3", selectL3);
+        // SmartDashboard.putData("L4", selectL4);
         configureBindings();
         FollowPathCommand.warmupCommand().schedule();
         PathfindingCommand.warmupCommand().schedule();
@@ -196,7 +193,7 @@ public class RobotContainer {
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
     }
 
     public Command getAutonomousCommand() {
