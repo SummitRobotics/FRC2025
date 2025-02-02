@@ -8,218 +8,10 @@
         "layouts": [],
         "containers": [
           {
-            "title": "One Left",
-            "x": 128.0,
-            "y": 768.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/One Left",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "One Right",
-            "x": 384.0,
-            "y": 768.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/One Right",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Two Left",
-            "x": 512.0,
-            "y": 640.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Two Left",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Two Right",
-            "x": 512.0,
-            "y": 512.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Two Right",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Three Left",
-            "x": 512.0,
-            "y": 384.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Three Left",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Three Right",
-            "x": 512.0,
-            "y": 256.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Three Right",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Four Left",
-            "x": 384.0,
-            "y": 128.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Four Left",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Four Right",
-            "x": 128.0,
-            "y": 128.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Four Right",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Five Left",
-            "x": 0.0,
-            "y": 256.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Five Left",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Five Right",
-            "x": 0.0,
-            "y": 384.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Five Right",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Six Left",
-            "x": 0.0,
-            "y": 512.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Six Left",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Six Right",
-            "x": 0.0,
-            "y": 640.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Six Right",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "L1",
-            "x": 256.0,
-            "y": 256.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/L1",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "L2",
-            "x": 256.0,
-            "y": 384.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/L2",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "L3",
-            "x": 256.0,
-            "y": 512.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/L3",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "L4",
-            "x": 256.0,
-            "y": 640.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/L4",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
             "title": "L Chooser",
-            "x": 896.0,
-            "y": 0.0,
-            "width": 640.0,
+            "x": 1280.0,
+            "y": 128.0,
+            "width": 512.0,
             "height": 128.0,
             "type": "Split Button Chooser",
             "properties": {
@@ -229,9 +21,9 @@
           },
           {
             "title": "Hex Side Chooser",
-            "x": 896.0,
-            "y": 128.0,
-            "width": 640.0,
+            "x": 1280.0,
+            "y": 256.0,
+            "width": 512.0,
             "height": 128.0,
             "type": "Split Button Chooser",
             "properties": {
@@ -241,14 +33,34 @@
           },
           {
             "title": "Left-Right Chooser",
-            "x": 896.0,
-            "y": 256.0,
-            "width": 640.0,
+            "x": 1280.0,
+            "y": 384.0,
+            "width": 512.0,
             "height": 128.0,
             "type": "Split Button Chooser",
             "properties": {
               "topic": "/SmartDashboard/Left-Right Chooser",
               "period": 0.06
+            }
+          },
+          {
+            "title": "Field",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1280.0,
+            "height": 768.0,
+            "type": "Field",
+            "properties": {
+              "topic": "/SmartDashboard/Field",
+              "period": 0.06,
+              "field_game": "Reefscape",
+              "robot_width": 0.85,
+              "robot_length": 0.85,
+              "show_other_objects": true,
+              "show_trajectories": true,
+              "field_rotation": 0.0,
+              "robot_color": 4294198070,
+              "trajectory_color": 4294967295
             }
           }
         ]

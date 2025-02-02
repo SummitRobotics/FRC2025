@@ -20,8 +20,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -51,9 +49,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
-
-    // Field2d object for simulation
-    private final Field2d m_field = new Field2d();
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -188,13 +183,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     /**
-     * Initializes the subsystem by adding the Field2d to SmartDashboard,
-     * starting the simulation thread, and configuring the auto builder.
+     * Initializes the subsystem by starting the simulation thread and configuring the auto builder.
      */
     private void init() {
-        // Add Field2d to SmartDashboard
-        SmartDashboard.putData("Field", m_field);
-
         if (Utils.isSimulation()) {
             startSimThread();
         }
@@ -263,8 +254,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
               Utils.fpgaToCurrentTime(mt2.timestampSeconds));
         }
 
-        // Update Field2d object
-        m_field.setRobotPose(getState().Pose);
     }
 
     private void configureAutoBuilder() {
