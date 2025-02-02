@@ -273,7 +273,6 @@ public class RobotContainer {
             // Trajectory trajectory = TrajectoryGenerator.generateTrajectory(activePath, new TrajectoryConfig(2.0, 2.0));
             // field.getObject("PathTrajectory").setTrajectory(trajectory);
             field.getObject("PathTrajectory").setPoses(activePath);
-
         }
     }
 }
