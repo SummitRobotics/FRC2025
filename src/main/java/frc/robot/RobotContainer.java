@@ -12,11 +12,15 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AutoPlace;
@@ -30,6 +34,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
+import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
 
 public class RobotContainer {
@@ -61,7 +66,7 @@ public class RobotContainer {
     private final SendableChooser<HexSide> hexSideChooser;
     private final SendableChooser<Side> leftRightChooser;
 
-    // Node chooser
+    // Button-based node chooser
     // private Side leftRight = Side.LEFT;
     // private SuperstructurePreset l = SuperstructurePreset.L1;
     // private HexSide hexSide = HexSide.ONE;
@@ -96,6 +101,24 @@ public class RobotContainer {
         // selectL2 = generateSelectCommand(SuperstructurePreset.L2),
         // selectL3 = generateSelectCommand(SuperstructurePreset.L3),
         // selectL4 = generateSelectCommand(SuperstructurePreset.L4);
+
+    // Field2d object for simulation
+    private final Field2d field = new Field2d();
+
+    // Ghost pointer positions to show which node is selected
+    private final Pose2d
+        ONE_LEFT = new Pose2d(3.186, 4.194, Rotation2d.fromDegrees(0)),
+        ONE_RIGHT = new Pose2d(3.187, 3.866, Rotation2d.fromDegrees(0)),
+        TWO_LEFT = new Pose2d(3.693, 2.982, Rotation2d.fromDegrees(60)),
+        TWO_RIGHT = new Pose2d(3.982, 2.816, Rotation2d.fromDegrees(60)),
+        THREE_LEFT = new Pose2d(4.989, 2.818, Rotation2d.fromDegrees(120)),
+        THREE_RIGHT = new Pose2d(5.283, 2.986, Rotation2d.fromDegrees(120)),
+        FOUR_LEFT = new Pose2d(5.783, 3.863, Rotation2d.fromDegrees(180)),
+        FOUR_RIGHT = new Pose2d(5.781, 4.188, Rotation2d.fromDegrees(180)),
+        FIVE_LEFT = new Pose2d(5.264, 5.076, Rotation2d.fromDegrees(240)),
+        FIVE_RIGHT = new Pose2d(4.992, 5.235, Rotation2d.fromDegrees(240)),
+        SIX_LEFT = new Pose2d(3.973, 5.231, Rotation2d.fromDegrees(300)),
+        SIX_RIGHT = new Pose2d(3.697, 5.061, Rotation2d.fromDegrees(300));
 
     public RobotContainer() {
         autoChooser = AutoBuilder.buildAutoChooser("Tests");
@@ -144,6 +167,7 @@ public class RobotContainer {
         // SmartDashboard.putData("L2", selectL2);
         // SmartDashboard.putData("L3", selectL3);
         // SmartDashboard.putData("L4", selectL4);
+        SmartDashboard.putData("Field", field);
         configureBindings();
         FollowPathCommand.warmupCommand().schedule();
         PathfindingCommand.warmupCommand().schedule();
@@ -202,5 +226,23 @@ public class RobotContainer {
 
     public void robotPeriodic() {
         buttonBox.sendMessage();
+        // Update Field2d object
+        if (Timer.getFPGATimestamp() % 1 > 0.25) {
+            field.setRobotPose(drivetrain.getState().Pose);
+        } else {
+            boolean left = leftRightChooser.getSelected() == Side.LEFT;
+            Pose2d ghostPose = switch (hexSideChooser.getSelected()) {
+                case ONE -> left ? ONE_LEFT : ONE_RIGHT;
+                case TWO -> left ? TWO_LEFT : TWO_RIGHT;
+                case THREE -> left ? THREE_LEFT : THREE_RIGHT;
+                case FOUR -> left ? FOUR_LEFT : FOUR_RIGHT;
+                case FIVE -> left ? FIVE_LEFT : FIVE_RIGHT;
+                case SIX -> left ? SIX_LEFT : SIX_RIGHT;
+            };
+            if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+                ghostPose = Functions.mirrorPoseToRed(ghostPose);
+            }
+            field.setRobotPose(ghostPose);
+        }
     }
 }
