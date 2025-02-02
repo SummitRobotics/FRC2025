@@ -7,6 +7,12 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -14,6 +20,10 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -227,22 +237,43 @@ public class RobotContainer {
     public void robotPeriodic() {
         buttonBox.sendMessage();
         // Update Field2d object
-        if (Timer.getFPGATimestamp() % 1 > 0.25) {
-            field.setRobotPose(drivetrain.getState().Pose);
-        } else {
-            boolean left = leftRightChooser.getSelected() == Side.LEFT;
-            Pose2d ghostPose = switch (hexSideChooser.getSelected()) {
-                case ONE -> left ? ONE_LEFT : ONE_RIGHT;
-                case TWO -> left ? TWO_LEFT : TWO_RIGHT;
-                case THREE -> left ? THREE_LEFT : THREE_RIGHT;
-                case FOUR -> left ? FOUR_LEFT : FOUR_RIGHT;
-                case FIVE -> left ? FIVE_LEFT : FIVE_RIGHT;
-                case SIX -> left ? SIX_LEFT : SIX_RIGHT;
-            };
-            if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
-                ghostPose = Functions.mirrorPoseToRed(ghostPose);
-            }
-            field.setRobotPose(ghostPose);
+        field.setRobotPose(drivetrain.getState().Pose);
+        boolean left = leftRightChooser.getSelected() == Side.LEFT;
+        Pose2d ghostPose = switch (hexSideChooser.getSelected()) {
+            case ONE -> left ? ONE_LEFT : ONE_RIGHT;
+            case TWO -> left ? TWO_LEFT : TWO_RIGHT;
+            case THREE -> left ? THREE_LEFT : THREE_RIGHT;
+            case FOUR -> left ? FOUR_LEFT : FOUR_RIGHT;
+            case FIVE -> left ? FIVE_LEFT : FIVE_RIGHT;
+            case SIX -> left ? SIX_LEFT : SIX_RIGHT;
+        };
+        if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+            ghostPose = Functions.mirrorPoseToRed(ghostPose);
+        }
+        field.getObject("PathTarget").setPose(ghostPose);
+
+        // Get the active path from the network tables and set it onto the field object
+        NetworkTableInstance inst = NetworkTableInstance.getDefault();
+        NetworkTable table = inst.getTable("/PathPlanner");
+        NetworkTableEntry activePathEntry = table.getEntry("activePath");
+
+        byte[] activePathBytes = activePathEntry.getRaw(new byte[0]);
+
+        // Deserialize the raw bytes into Pose2d objects
+        List<Pose2d> activePath = new ArrayList<>();
+        ByteBuffer buffer = ByteBuffer.wrap(activePathBytes).order(ByteOrder.LITTLE_ENDIAN);
+        while (buffer.remaining() >= 24) {
+            double x = buffer.getDouble();
+            double y = buffer.getDouble();
+            double theta = buffer.getDouble();
+            activePath.add(new Pose2d(new Translation2d(x, y), new Rotation2d(theta)));
+        }
+
+        if (!activePath.isEmpty()) {
+            // Trajectory trajectory = TrajectoryGenerator.generateTrajectory(activePath, new TrajectoryConfig(2.0, 2.0));
+            // field.getObject("PathTrajectory").setTrajectory(trajectory);
+            field.getObject("PathTrajectory").setPoses(activePath);
+
         }
     }
 }
