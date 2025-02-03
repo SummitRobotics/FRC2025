@@ -16,6 +16,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -68,8 +69,10 @@ public class Superstructure extends SubsystemBase {
     private SuperstructurePreset state = SuperstructurePreset.STOW_LOWER;
 
     // Elevator
+    @Logged(name = "Elevator")
     private final TalonFX
-        elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A),
+        elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A);
+    private final TalonFX
         elevatorB = new TalonFX(Constants.Elevator.ELEVATOR_ID_B);
     private final MotionMagicVoltage mmVoltageReq = new MotionMagicVoltage(0).withSlot(0);
     private final Follower followReq = new Follower(Constants.Elevator.ELEVATOR_ID_A, false);

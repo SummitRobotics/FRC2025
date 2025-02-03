@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 import java.util.function.Supplier;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -11,6 +12,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -111,6 +113,24 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
+
+    // Drivetrain motors, instantiated only for logging
+    @Logged(name = "Drive0")
+    TalonFX drive0 = getModule(0).getDriveMotor();
+    @Logged(name = "Drive1")
+    TalonFX drive1 = getModule(1).getDriveMotor();
+    @Logged(name = "Drive2")
+    TalonFX drive2 = getModule(2).getDriveMotor();
+    @Logged(name = "Drive3")
+    TalonFX drive3 = getModule(3).getDriveMotor();
+    @Logged(name = "Turn0")
+    TalonFX turn0 = getModule(0).getSteerMotor();
+    @Logged(name = "Turn1")
+    TalonFX turn1 = getModule(1).getSteerMotor();
+    @Logged(name = "Turn2")
+    TalonFX turn2 = getModule(2).getSteerMotor();
+    @Logged(name = "Turn3")
+    TalonFX turn3 = getModule(3).getSteerMotor();
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.

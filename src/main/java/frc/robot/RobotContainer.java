@@ -16,6 +16,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -62,7 +63,10 @@ public class RobotContainer {
     private final ButtonBox buttonBox = new ButtonBox(Constants.OI.BUTTON_BOX);
 
     // Subsystems
+    @Logged(name = "Drivetrain")
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+
+    @Logged(name = "Superstructure")
     public final Superstructure superstructure = new Superstructure(buttonBox);
     // public final Scrubber scrubber = new Scrubber();
     
