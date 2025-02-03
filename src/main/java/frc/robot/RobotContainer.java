@@ -7,12 +7,10 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -25,23 +23,21 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AutoPlace;
 import frc.robot.commands.AutoPlace.HexSide;
-import frc.robot.commands.AutoPlace.Node;
 import frc.robot.commands.AutoPlace.Side;
 import frc.robot.generated.TunerConstants;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.Functions;
@@ -68,7 +64,7 @@ public class RobotContainer {
     // Subsystems
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final Superstructure superstructure = new Superstructure(buttonBox);
-    public final Scrubber scrubber = new Scrubber();
+    // public final Scrubber scrubber = new Scrubber();
     
     // Path follower
     private final SendableChooser<Command> autoChooser;
@@ -84,13 +80,13 @@ public class RobotContainer {
         // return new InstantCommand(() -> {
             // this.hexSide = hexSide;
             // this.leftRight = leftRight;
-            // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
+            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
         // });
     // }
     // private final Command generateSelectCommand(SuperstructurePreset l) {
         // return new InstantCommand(() -> {
             // this.l = l;
-            // driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
+            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
         // });
     // }
 
@@ -148,15 +144,15 @@ public class RobotContainer {
         leftRightChooser.setDefaultOption("Left", AutoPlace.Side.LEFT);
         leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
-        lChooser.onChange((SuperstructurePreset l) -> {
-            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
-        });
-        hexSideChooser.onChange((HexSide hexSide) -> {
-            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
-        });
-        leftRightChooser.onChange((leftRight) -> {
-            driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
-        });
+        // lChooser.onChange((SuperstructurePreset l) -> {
+            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        // });
+        // hexSideChooser.onChange((HexSide hexSide) -> {
+            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
+        // });
+        // leftRightChooser.onChange((leftRight) -> {
+            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
+        // });
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
@@ -213,21 +209,32 @@ public class RobotContainer {
         // Superstructure MOs
         buttonBox.getTrigger(Button.MO_PRESET).whileTrue(superstructure.setManual(
             () -> gunnerXBox.getLeftTriggerAxis() * Constants.Elevator.MAX_ROTATIONS,
-            () -> Constants.Manipulator.MIN_RADIANS + gunnerXBox.getRightTriggerAxis() * (Constants.Manipulator.MAX_RADIANS - Constants.Manipulator.MIN_RADIANS),
-            () -> (gunnerXBox.povUp().getAsBoolean() ? 1 : 0) + (gunnerXBox.povDown().getAsBoolean() ? -1 : 0),
-            () -> (gunnerXBox.povLeft().getAsBoolean() ? 1 : 0) + (gunnerXBox.povRight().getAsBoolean() ? -1 : 0)
+            () -> Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS + gunnerXBox.getRightTriggerAxis() * (Constants.Manipulator.MAX_ROTATIONS - Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS),
+            // () -> (gunnerXBox.povUp().getAsBoolean() ? 1 : 0) + (gunnerXBox.povDown().getAsBoolean() ? -1 : 0),
+            // () -> (gunnerXBox.povLeft().getAsBoolean() ? 1 : 0) + (gunnerXBox.povRight().getAsBoolean() ? -1 : 0)
+            () -> (gunnerXBox.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? 1 : 0),
+            () -> (gunnerXBox.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? -1 : 0)
         ));
         // Scrubber MOs
-        buttonBox.getTrigger(Button.MO_PRESET).whileTrue(scrubber.set(() -> gunnerXBox.x().getAsBoolean() ? Constants.Scrubber.MAX_ROTATIONS : 0));
+        // buttonBox.getTrigger(Button.MO_PRESET).whileTrue(scrubber.set(() -> gunnerXBox.x().getAsBoolean() ? Constants.Scrubber.MAX_ROTATIONS : 0));
 
         // Bind the button box presets
         for (SuperstructurePreset preset : SuperstructurePreset.values()) {
-            if (preset.button != null) buttonBox.getTrigger(preset.button).onTrue(superstructure.setPreset(preset));
+            // Sequence to move to the safe upper stow preset first before anything else to avoid collisions
+            if (preset.button != null) buttonBox.getTrigger(preset.button).onTrue(
+                new SequentialCommandGroup(
+                    superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint),
+                    superstructure.setPresetWithBeltOverride(
+                        preset,
+                        () -> (gunnerXBox.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? 1 : 0),
+                        () -> (gunnerXBox.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? -1 : 0)
+                    )
+            ));
         }
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        driverXBox.x().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
     }
 
     public Command getAutonomousCommand() {

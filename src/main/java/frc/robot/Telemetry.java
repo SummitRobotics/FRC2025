@@ -30,6 +30,7 @@ public class Telemetry {
      */
     public Telemetry(double maxSpeed) {
         MaxSpeed = maxSpeed;
+        SignalLogger.setPath("/home/lvuser/logs");
         SignalLogger.start();
     }
 

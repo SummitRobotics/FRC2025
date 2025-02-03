@@ -18,37 +18,42 @@ public class Constants {
     }
     public static class Elevator {
         public static final int
-            ELEVATOR_ID_A = 10,
-            ELEVATOR_ID_B = 11;
+            ELEVATOR_ID_A = 13,
+            ELEVATOR_ID_B = 14;
         public static final AngularVelocity
             ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
         public static final AngularAcceleration
             ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
         public static final double
-            P = 0,
+            P = 0.7,
             I = 0,
             D = 0,
             kS = 0,
-            kG = 0,
-            kV = 0,
-            kA = 0,
-            MAX_ROTATIONS = 0,
+            kG = 0.45,
+            kV = 0.35,
+            kA = 0.075,
+            MAX_ROTATIONS = 15.5,
             ROTATION_TOLERANCE = 5;
     }
 
     public static class Manipulator {
         public static final int
-            BELT_LEFT_ID = 12,
-            BELT_RIGHT_ID = 13,
-            PIVOT_ID = 14,
-            CANCODER_ID = 15;
+            BELT_LEFT_ID = 11,
+            BELT_RIGHT_ID = 10,
+            PIVOT_ID = 4,
+            CANCODER_ID = 5;
         public static final double
-            MAX_RADIANS = 0,
-            MIN_RADIANS = 0,
-            PIVOT_RATIO = 0,
-            P = 0,
-            I = 0,
+            MAX_ROTATIONS = 0.3,
+            MIN_ROTATIONS = -0.246,
+            CLEAR_OF_ELEVATOR_ROTATIONS = -0.145264,
+            PIVOT_RATIO = 54,
+            P = 16,
+            I = 1,
             D = 0,
+            kS = 0,
+            kG = 0.27,
+            kV = 0.6,
+            kA = 0,
             // A feedforward to overcome friction (will need to reverse direction depending on movement - not sure how to apply this setting to the controller.)
             // FF = 0,
             ROTATION_TOLERANCE = 0.03490659, // Radians
@@ -63,9 +68,9 @@ public class Constants {
             P = 0,
             I = 0,
             D = 0,
-            kG = 0,
-            kS = 0,
-            kV = 0,
+            // kG = 0,
+            // kS = 0,
+            // kV = 0,
             MAX_ROTATIONS = 0;
     }
 
