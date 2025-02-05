@@ -105,6 +105,10 @@ public class Superstructure extends SubsystemBase {
             .withGravityType(GravityTypeValue.Elevator_Static);
         config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
         config.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Elevator.MAX_ROTATIONS;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
         elevatorA.getConfigurator().apply(config);
         elevatorB.getConfigurator().apply(config);
         elevatorA.setPosition(0);
@@ -129,6 +133,10 @@ public class Superstructure extends SubsystemBase {
             .withRotorToSensorRatio(Constants.Manipulator.PIVOT_RATIO);
         pivotConfig.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
         pivotConfig.MotorOutput.withInverted(InvertedValue.Clockwise_Positive);
+        pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Manipulator.MAX_ROTATIONS;
+        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
         pivot.getConfigurator().apply(pivotConfig);
         setPreset(SuperstructurePreset.STOW_LOWER);
 
@@ -145,19 +153,12 @@ public class Superstructure extends SubsystemBase {
 
     // Set elevator position
     private void setElevator(double rotations) {
-        // TODO - Not sure if this is the correct way to do encoder limits with TalonFX controllers
-        elevatorA.setControl(mmVoltageReq.withPosition(rotations)
-            .withLimitForwardMotion(elevatorA.getPosition().getValueAsDouble() > Constants.Elevator.MAX_ROTATIONS)
-            .withLimitReverseMotion(elevatorA.getPosition().getValueAsDouble() < 0)
-        );
+        elevatorA.setControl(mmVoltageReq.withPosition(rotations));
         elevatorB.setControl(followReq);
     }
 
     private void setPivot(double rotations) {
-        pivot.setControl(pivotReq.withPosition(rotations)
-            .withLimitForwardMotion(pivotCancoder.getPosition().getValueAsDouble() > Constants.Manipulator.MAX_ROTATIONS)
-            .withLimitReverseMotion(pivotCancoder.getPosition().getValueAsDouble() < Constants.Manipulator.MIN_ROTATIONS)
-        );
+        pivot.setControl(pivotReq.withPosition(rotations));
     }
 
     public Command setPreset(SuperstructurePreset preset) {
@@ -182,6 +183,7 @@ public class Superstructure extends SubsystemBase {
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
         return this.run(() -> {
+            // System.out.println("Moving elevator...");
             setElevator(preset.elevatorRotations);
             setPivot(preset.pivotRotations);
             beltLeft.set(leftBelt.getAsDouble());

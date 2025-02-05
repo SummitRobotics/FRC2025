@@ -18,6 +18,8 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.util.datalog.StringLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -52,6 +54,27 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
+    // Drivetrain motors, instantiated only for logging
+    @Logged(name = "Drive0")
+    TalonFX drive0 = getModule(0).getDriveMotor();
+    @Logged(name = "Drive1")
+    TalonFX drive1 = getModule(1).getDriveMotor();
+    @Logged(name = "Drive2")
+    TalonFX drive2 = getModule(2).getDriveMotor();
+    @Logged(name = "Drive3")
+    TalonFX drive3 = getModule(3).getDriveMotor();
+    @Logged(name = "Turn0")
+    TalonFX turn0 = getModule(0).getSteerMotor();
+    @Logged(name = "Turn1")
+    TalonFX turn1 = getModule(1).getSteerMotor();
+    @Logged(name = "Turn2")
+    TalonFX turn2 = getModule(2).getSteerMotor();
+    @Logged(name = "Turn3")
+    TalonFX turn3 = getModule(3).getSteerMotor();
+    // @Logged(name = "TestState")
+    // String testState = "";
+    StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
+
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
         new SysIdRoutine.Config(
@@ -59,7 +82,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
             null,        // Use default timeout (10 s)
             // Log state with SignalLogger class
-            state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())
+            state -> { testState.append(state.toString()); }
         ),
         new SysIdRoutine.Mechanism(
             output -> setControl(m_translationCharacterization.withVolts(output)),
@@ -75,7 +98,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Volts.of(7), // Use dynamic voltage of 7 V
             null,        // Use default timeout (10 s)
             // Log state with SignalLogger class
-            state -> SignalLogger.writeString("SysIdSteer_State", state.toString())
+            state -> { testState.append(state.toString()); }
         ),
         new SysIdRoutine.Mechanism(
             volts -> setControl(m_steerCharacterization.withVolts(volts)),
@@ -97,7 +120,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Volts.of(Math.PI),
             null, // Use default timeout (10 s)
             // Log state with SignalLogger class
-            state -> SignalLogger.writeString("SysIdRotation_State", state.toString())
+            state -> { testState.append(state.toString()); }
         ),
         new SysIdRoutine.Mechanism(
             output -> {
@@ -112,25 +135,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     );
 
     /* The SysId routine to test */
-    private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
+    private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineSteer;
 
-    // Drivetrain motors, instantiated only for logging
-    @Logged(name = "Drive0")
-    TalonFX drive0 = getModule(0).getDriveMotor();
-    @Logged(name = "Drive1")
-    TalonFX drive1 = getModule(1).getDriveMotor();
-    @Logged(name = "Drive2")
-    TalonFX drive2 = getModule(2).getDriveMotor();
-    @Logged(name = "Drive3")
-    TalonFX drive3 = getModule(3).getDriveMotor();
-    @Logged(name = "Turn0")
-    TalonFX turn0 = getModule(0).getSteerMotor();
-    @Logged(name = "Turn1")
-    TalonFX turn1 = getModule(1).getSteerMotor();
-    @Logged(name = "Turn2")
-    TalonFX turn2 = getModule(2).getSteerMotor();
-    @Logged(name = "Turn3")
-    TalonFX turn3 = getModule(3).getSteerMotor();
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
