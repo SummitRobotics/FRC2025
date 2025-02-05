@@ -16,6 +16,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -68,8 +69,10 @@ public class Superstructure extends SubsystemBase {
     private SuperstructurePreset state = SuperstructurePreset.STOW_LOWER;
 
     // Elevator
+    @Logged(name = "Elevator")
     private final TalonFX
-        elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A),
+        elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A);
+    private final TalonFX
         elevatorB = new TalonFX(Constants.Elevator.ELEVATOR_ID_B);
     private final MotionMagicVoltage mmVoltageReq = new MotionMagicVoltage(0).withSlot(0);
     private final Follower followReq = new Follower(Constants.Elevator.ELEVATOR_ID_A, false);
@@ -102,6 +105,10 @@ public class Superstructure extends SubsystemBase {
             .withGravityType(GravityTypeValue.Elevator_Static);
         config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
         config.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Elevator.MAX_ROTATIONS;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
         elevatorA.getConfigurator().apply(config);
         elevatorB.getConfigurator().apply(config);
         elevatorA.setPosition(0);
@@ -126,6 +133,10 @@ public class Superstructure extends SubsystemBase {
             .withRotorToSensorRatio(Constants.Manipulator.PIVOT_RATIO);
         pivotConfig.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
         pivotConfig.MotorOutput.withInverted(InvertedValue.Clockwise_Positive);
+        pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Manipulator.MAX_ROTATIONS;
+        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
         pivot.getConfigurator().apply(pivotConfig);
         setPreset(SuperstructurePreset.STOW_LOWER);
 
@@ -142,19 +153,12 @@ public class Superstructure extends SubsystemBase {
 
     // Set elevator position
     private void setElevator(double rotations) {
-        // TODO - Not sure if this is the correct way to do encoder limits with TalonFX controllers
-        elevatorA.setControl(mmVoltageReq.withPosition(rotations)
-            .withLimitForwardMotion(elevatorA.getPosition().getValueAsDouble() > Constants.Elevator.MAX_ROTATIONS)
-            .withLimitReverseMotion(elevatorA.getPosition().getValueAsDouble() < 0)
-        );
+        elevatorA.setControl(mmVoltageReq.withPosition(rotations));
         elevatorB.setControl(followReq);
     }
 
     private void setPivot(double rotations) {
-        pivot.setControl(pivotReq.withPosition(rotations)
-            .withLimitForwardMotion(pivotCancoder.getPosition().getValueAsDouble() > Constants.Manipulator.MAX_ROTATIONS)
-            .withLimitReverseMotion(pivotCancoder.getPosition().getValueAsDouble() < Constants.Manipulator.MIN_ROTATIONS)
-        );
+        pivot.setControl(pivotReq.withPosition(rotations));
     }
 
     public Command setPreset(SuperstructurePreset preset) {
@@ -179,6 +183,7 @@ public class Superstructure extends SubsystemBase {
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
         return this.run(() -> {
+            // System.out.println("Moving elevator...");
             setElevator(preset.elevatorRotations);
             setPivot(preset.pivotRotations);
             beltLeft.set(leftBelt.getAsDouble());

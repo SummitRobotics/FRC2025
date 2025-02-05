@@ -33,14 +33,14 @@ public class Constants {
             kV = 0.35,
             kA = 0.075,
             MAX_ROTATIONS = 15.5,
-            ROTATION_TOLERANCE = 5;
+            ROTATION_TOLERANCE = 0.25;
     }
 
     public static class Manipulator {
         public static final int
             BELT_LEFT_ID = 11,
             BELT_RIGHT_ID = 10,
-            PIVOT_ID = 4,
+            PIVOT_ID = 26,
             CANCODER_ID = 5;
         public static final double
             MAX_ROTATIONS = 0.3,
@@ -56,7 +56,7 @@ public class Constants {
             kA = 0,
             // A feedforward to overcome friction (will need to reverse direction depending on movement - not sure how to apply this setting to the controller.)
             // FF = 0,
-            ROTATION_TOLERANCE = 0.03490659, // Radians
+            ROTATION_TOLERANCE = 2,
             MAX_VELOCITY = 60,
             MAX_ACCEL = 120;
     }
