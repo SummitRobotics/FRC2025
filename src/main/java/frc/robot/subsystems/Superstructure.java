@@ -1,10 +1,8 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
-
 import java.util.function.DoubleSupplier;
-
-import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -17,6 +15,8 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.util.datalog.StringLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -28,11 +28,11 @@ public class Superstructure extends SubsystemBase {
 
     // State machine with encoder presets
     public static enum SuperstructurePreset {
-        STOW_LOWER(0, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
-        STOW_UPPER(0, Constants.Manipulator.MAX_ROTATIONS, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
+        STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
+        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
         RECEIVE(1.9, -0.111816, 0, 0, "Receive", Button.RECEIVE_PRESET),
-        L1(0, Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
-        L2(0, 0.094482, 0, 0, "2", Button.L2_PRESET),
+        L1(0.1, Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
+        L2(0.1, 0.094482, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.118408, 0, 0, "3", Button.L3_PRESET),
         L4(14.85209, 0.077148, 0, 0, "4", Button.L4_PRESET),
         L1_GO(L1.elevatorRotations, L1.pivotRotations, 1, 1, "1", null),
@@ -74,6 +74,7 @@ public class Superstructure extends SubsystemBase {
         elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A);
     private final TalonFX
         elevatorB = new TalonFX(Constants.Elevator.ELEVATOR_ID_B);
+    StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
     private final MotionMagicVoltage mmVoltageReq = new MotionMagicVoltage(0).withSlot(0);
     private final Follower followReq = new Follower(Constants.Elevator.ELEVATOR_ID_A, false);
     // Manipulator
@@ -109,6 +110,8 @@ public class Superstructure extends SubsystemBase {
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Elevator.MAX_ROTATIONS;
         config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
+        // config.CurrentLimits.StatorCurrentLimit = 60;
+        // config.CurrentLimits.SupplyCurrentLimit = 60;
         elevatorA.getConfigurator().apply(config);
         elevatorB.getConfigurator().apply(config);
         elevatorA.setPosition(0);
@@ -136,7 +139,7 @@ public class Superstructure extends SubsystemBase {
         pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
         pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Manipulator.MAX_ROTATIONS;
-        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
+        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Manipulator.MIN_ROTATIONS;
         pivot.getConfigurator().apply(pivotConfig);
         setPreset(SuperstructurePreset.STOW_LOWER);
 
@@ -153,8 +156,13 @@ public class Superstructure extends SubsystemBase {
 
     // Set elevator position
     private void setElevator(double rotations) {
-        elevatorA.setControl(mmVoltageReq.withPosition(rotations));
-        elevatorB.setControl(followReq);
+        if (rotations > 0.2 || elevatorA.getPosition().getValueAsDouble() > 0.2) {
+            elevatorA.setControl(mmVoltageReq.withPosition(rotations));
+            elevatorB.setControl(followReq);
+        } else {
+            elevatorA.set(0);
+            elevatorB.set(0);
+        }
     }
 
     private void setPivot(double rotations) {
@@ -208,11 +216,11 @@ public class Superstructure extends SubsystemBase {
     private final SysIdRoutine sysIdRoutine =
         new SysIdRoutine(
             new SysIdRoutine.Config(
-            null,        // Use default ramp rate (1 V/s)
-                Volts.of(4), // Reduce dynamic step voltage to 4 to prevent brownout
+                Volts.per(Second).of(0.5),        // Use default ramp rate (1 V/s)
+                Volts.of(2), // Reduce dynamic step voltage to 4 to prevent brownout
         null,        // Use default timeout (10 s)
                 // Log state with Phoenix SignalLogger class
-                (state) -> SignalLogger.writeString("state", state.toString())
+                state -> { testState.append(state.toString()); }
             ),
             new SysIdRoutine.Mechanism(
                 (volts) -> {

@@ -29,7 +29,10 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AutoPlace;
@@ -202,10 +205,14 @@ public class RobotContainer {
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
-        driverXBox.back().and(driverXBox.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        driverXBox.back().and(driverXBox.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        driverXBox.start().and(driverXBox.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        driverXBox.start().and(driverXBox.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        // driverXBox.back().and(driverXBox.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        // driverXBox.back().and(driverXBox.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        // driverXBox.start().and(driverXBox.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        // driverXBox.start().and(driverXBox.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        driverXBox.back().and(driverXBox.y()).whileTrue(superstructure.sysIdDynamic(Direction.kForward));
+        driverXBox.back().and(driverXBox.x()).whileTrue(superstructure.sysIdDynamic(Direction.kReverse));
+        driverXBox.start().and(driverXBox.y()).whileTrue(superstructure.sysIdQuasistatic(Direction.kForward));
+        driverXBox.start().and(driverXBox.x()).whileTrue(superstructure.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
         driverXBox.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -227,7 +234,16 @@ public class RobotContainer {
             // Sequence to move to the safe upper stow preset first before anything else to avoid collisions
             if (preset.button != null) buttonBox.getTrigger(preset.button).onTrue(
                 new SequentialCommandGroup(
-                    superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint),
+                    // new ConditionalCommand(
+                        // superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint),
+                        // new InstantCommand(),
+                        // () -> (superstructure.getState() == SuperstructurePreset.L3
+                            // || superstructure.getState() == SuperstructurePreset.L3_GO
+                            // || superstructure.getState() == SuperstructurePreset.L4
+                            // || superstructure.getState() == SuperstructurePreset.L4_GO
+                        // )
+                    // ),
+                    // superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint),
                     superstructure.setPresetWithBeltOverride(
                         preset,
                         () -> (gunnerXBox.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? 1 : 0),

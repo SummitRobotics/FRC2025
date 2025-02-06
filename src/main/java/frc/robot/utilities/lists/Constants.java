@@ -21,17 +21,17 @@ public class Constants {
             ELEVATOR_ID_A = 13,
             ELEVATOR_ID_B = 14;
         public static final AngularVelocity
-            ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
+            ELEVATOR_MM_VEL = RotationsPerSecond.of(30);
         public static final AngularAcceleration
-            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
+            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
         public static final double
-            P = 0.7,
+            P = 1,
             I = 0,
             D = 0,
             kS = 0,
-            kG = 0.45,
-            kV = 0.35,
-            kA = 0.075,
+            kG = 0.8,
+            kV = 0.15,
+            kA = 0,
             MAX_ROTATIONS = 15.5,
             ROTATION_TOLERANCE = 0.25;
     }
