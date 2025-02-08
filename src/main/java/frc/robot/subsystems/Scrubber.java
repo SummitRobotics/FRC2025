@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.lists.Constants;
 
 public class Scrubber extends SubsystemBase {
@@ -31,9 +32,9 @@ public class Scrubber extends SubsystemBase {
         scrubberConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
         scrubberConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         scrubberConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Scrubber.MAX_ROTATIONS;
-        scrubberConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Scrubber.GEAR_RATIO * manipulatorPivot.getAsDouble();
+        scrubberConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations;
         scrubber.getConfigurator().apply(scrubberConfig);
-        scrubber.setPosition(Constants.Scrubber.GEAR_RATIO * manipulatorPivot.getAsDouble());
+        scrubber.setPosition(Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations);
     }
 
     public Command set(DoubleSupplier target) {

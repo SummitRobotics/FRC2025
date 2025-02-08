@@ -65,16 +65,16 @@ public class Constants {
 
     public static class Scrubber {
         public static final int
-            SCRUBBER_ID = 16;
+            SCRUBBER_ID = 8;
         public static final double
-            P = 0,
+            P = 0.6,
             I = 0,
             D = 0,
             // kG = 0,
             // kS = 0,
             // kV = 0,
             GEAR_RATIO = 16.8,
-            MAX_ROTATIONS = GEAR_RATIO / 2;
+            MAX_ROTATIONS = GEAR_RATIO / 4;
     }
 
     public static class Climb {

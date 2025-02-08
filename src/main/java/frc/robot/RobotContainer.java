@@ -70,7 +70,7 @@ public class RobotContainer {
 
     @Logged(name = "Superstructure")
     public final Superstructure superstructure = new Superstructure(buttonBox);
-    // public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
+    public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
     
     // Path follower
     private final SendableChooser<Command> autoChooser;
@@ -238,7 +238,7 @@ public class RobotContainer {
             () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
         ));
         // Scrubber MOs
-        // buttonBox.getTrigger(Button.MO_PRESET).whileTrue(scrubber.set(() -> gunnerController.x().getAsBoolean() ? Constants.Scrubber.MAX_ROTATIONS : 0));
+        buttonBox.getTrigger(Button.MO_PRESET).whileTrue(scrubber.set(() -> gunnerController.x().getAsBoolean() ? Constants.Scrubber.MAX_ROTATIONS : Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations));
 
         // Bind the button box presets
         for (SuperstructurePreset preset : SuperstructurePreset.values()) {
