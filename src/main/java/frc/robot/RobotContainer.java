@@ -23,6 +23,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.CAN;
+import edu.wpi.first.hal.CANData;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -117,6 +119,10 @@ public class RobotContainer {
 
     // Field2d object for simulation
     private final Field2d field = new Field2d();
+
+    // CAN
+    private final CAN tofDevice = new CAN(40);
+    //
 
     // Ghost pointer positions to show which node is selected
     private final Pose2d
@@ -300,5 +306,15 @@ public class RobotContainer {
             // field.getObject("PathTrajectory").setTrajectory(trajectory);
             field.getObject("PathTrajectory").setPoses(activePath);
         }
+
+        /// START-CAN
+        CANData data = new CANData();
+        boolean received = tofDevice.readPacketLatest(0, data);
+        if (received) {
+            // Process received data
+            SmartDashboard.putNumber("ToF Distance", (data.data[0] << 16) | data.data[1] << 8 | data.data[2]);
+            SmartDashboard.putNumber("ToF Status", (data.data[3]));
+        }
+        /// END-CAN
     }
 }
