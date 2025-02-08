@@ -180,6 +180,7 @@ public class RobotContainer {
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Auto Mode", autoChooser);
+        SmartDashboard.putData("Superstructure", superstructure);
         // SmartDashboard.putData("One Left", selectOneLeft);
         // SmartDashboard.putData("One Right", selectOneRight);
         // SmartDashboard.putData("Two Left", selectTwoLeft);

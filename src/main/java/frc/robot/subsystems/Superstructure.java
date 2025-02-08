@@ -16,6 +16,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.util.datalog.StringLogEntry;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -185,7 +186,11 @@ public class Superstructure extends SubsystemBase {
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
         Command setTo = set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
-        if (preset.elevatorRotations > 1 || preset.pivotRotations < Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS) {
+        if (
+            preset != SuperstructurePreset.getCorrespondingGoState(getState())
+            && preset != SuperstructurePreset.STOW_UPPER
+            && (preset.elevatorRotations > 1 || preset.pivotRotations < Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS)
+        ) {
             return setPreset(SuperstructurePreset.STOW_UPPER).until(this::atSetpoint).andThen(setTo);
         }
         state = preset;
@@ -237,5 +242,10 @@ public class Superstructure extends SubsystemBase {
 
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
        return sysIdRoutine.dynamic(direction);
+    }
+
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.addStringProperty("State", getState()::name, null);
     }
 }
