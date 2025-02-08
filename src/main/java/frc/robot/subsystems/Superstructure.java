@@ -187,9 +187,10 @@ public class Superstructure extends SubsystemBase {
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
         Command setTo = set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
         if (
-            preset != SuperstructurePreset.getCorrespondingGoState(getState())
+            getState() == SuperstructurePreset.MANUAL_OVERRIDE ||
+            (preset != SuperstructurePreset.getCorrespondingGoState(getState())
             && preset != SuperstructurePreset.STOW_UPPER
-            && (preset.elevatorRotations > 1 || preset.pivotRotations < Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS)
+            && (preset.elevatorRotations > 1 || preset.pivotRotations < Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS))
         ) {
             return setPreset(SuperstructurePreset.STOW_UPPER).until(this::atSetpoint).andThen(setTo);
         }

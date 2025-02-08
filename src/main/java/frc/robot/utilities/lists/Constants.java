@@ -23,9 +23,11 @@ public class Constants {
             ELEVATOR_ID_A = 13,
             ELEVATOR_ID_B = 14;
         public static final AngularVelocity
-            ELEVATOR_MM_VEL = RotationsPerSecond.of(30);
+            // ELEVATOR_MM_VEL = RotationsPerSecond.of(30);
+            ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
         public static final AngularAcceleration
-            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
+            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
+            // ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
         public static final double
             P = 1,
             I = 0,
