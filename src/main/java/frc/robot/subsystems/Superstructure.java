@@ -16,12 +16,14 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.util.datalog.StringLogEntry;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
+import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
 
 public class Superstructure extends SubsystemBase {
@@ -29,7 +31,7 @@ public class Superstructure extends SubsystemBase {
     // State machine with encoder presets
     public static enum SuperstructurePreset {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
-        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
+        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.97, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
         RECEIVE(1.9, -0.111816, 0, 0, "Receive", Button.RECEIVE_PRESET),
         L1(0.1, Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.094482, 0, 0, "2", Button.L2_PRESET),
@@ -39,7 +41,7 @@ public class Superstructure extends SubsystemBase {
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, 1, "2", null),
         L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, 1, "3", null),
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
-        NONE(0, 0, 0, 0, "None", null); // being manually overridden to something
+        MANUAL_OVERRIDE(0, 0, 0, 0, "Manual Override", null); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRotations;
         public double leftBelt;
@@ -169,35 +171,35 @@ public class Superstructure extends SubsystemBase {
         pivot.setControl(pivotReq.withPosition(rotations));
     }
 
-    public Command setPreset(SuperstructurePreset preset) {
+    private Command set(DoubleSupplier elevatorRotations, DoubleSupplier pivotRotations, DoubleSupplier leftBelt, DoubleSupplier rightBelt, boolean isManual) {
         return this.run(() -> {
-            setElevator(preset.elevatorRotations);
-            setPivot(preset.pivotRotations);
-            beltLeft.set(preset.leftBelt);
-            beltRight.set(preset.rightBelt);
-            state = preset;
+
+            // Do not collide mechanisms
+            boolean pivotSafe =
+                pivotCancoder.getPosition().getValueAsDouble() > SuperstructurePreset.STOW_UPPER.pivotRotations - Constants.Manipulator.ROTATION_TOLERANCE;
+            boolean elevatorSafe = 
+                Functions.withinTolerance(elevatorA.getPosition().getValueAsDouble(), elevatorRotations.getAsDouble(), Constants.Elevator.ROTATION_TOLERANCE);
+            // Freeze the elevator until pivot's safe
+            setElevator(pivotSafe ? elevatorRotations.getAsDouble() : elevatorA.getPosition().getValueAsDouble());
+            // Save the pivot until elevator's positioned
+            setPivot(elevatorSafe ? pivotRotations.getAsDouble() : SuperstructurePreset.STOW_UPPER.pivotRotations);
+            beltLeft.set(leftBelt.getAsDouble());
+            beltRight.set(rightBelt.getAsDouble());
+            if (isManual) state = SuperstructurePreset.MANUAL_OVERRIDE;
         });
     }
 
     public Command setManual(DoubleSupplier elevatorRotations, DoubleSupplier pivotRotations, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
-        return this.run(() -> {
-            setElevator(elevatorRotations.getAsDouble());
-            setPivot(pivotRotations.getAsDouble());
-            beltLeft.set(leftBelt.getAsDouble());
-            beltRight.set(rightBelt.getAsDouble());
-            state = SuperstructurePreset.NONE;
-        });
+        return set(elevatorRotations, pivotRotations, leftBelt, rightBelt, true);
     }
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
-        return this.run(() -> {
-            // System.out.println("Moving elevator...");
-            setElevator(preset.elevatorRotations);
-            setPivot(preset.pivotRotations);
-            beltLeft.set(leftBelt.getAsDouble());
-            beltRight.set(rightBelt.getAsDouble());
-            state = preset;
-        });
+        state = preset;
+        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
+    }
+
+    public Command setPreset(SuperstructurePreset preset) {
+        return setPresetWithBeltOverride(preset, () -> preset.leftBelt, () -> preset.rightBelt);
     }
 
     public SuperstructurePreset getState() {
@@ -207,6 +209,10 @@ public class Superstructure extends SubsystemBase {
     public boolean atSetpoint() {
         return elevatorA.getClosedLoopError().getValueAsDouble() < Constants.Elevator.ROTATION_TOLERANCE
             && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE;
+    }
+
+    public double pivotRotations() {
+        return pivotCancoder.getPosition().getValueAsDouble();
     }
 
     // SysID to find elevator gains
@@ -241,5 +247,10 @@ public class Superstructure extends SubsystemBase {
 
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
        return sysIdRoutine.dynamic(direction);
+    }
+
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.addStringProperty("State", getState()::name, null);
     }
 }

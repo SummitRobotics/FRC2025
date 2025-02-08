@@ -23,8 +23,10 @@ public class Constants {
             ELEVATOR_ID_A = 13,
             ELEVATOR_ID_B = 14;
         public static final AngularVelocity
+            // ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
             ELEVATOR_MM_VEL = RotationsPerSecond.of(30);
         public static final AngularAcceleration
+            // ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
             ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
         public static final double
             P = 1,
@@ -35,7 +37,7 @@ public class Constants {
             kV = 0.15,
             kA = 0,
             MAX_ROTATIONS = 15.5,
-            ROTATION_TOLERANCE = 0.25;
+            ROTATION_TOLERANCE = 1;
     }
 
     public static class Manipulator {
@@ -56,9 +58,7 @@ public class Constants {
             kG = 0.27,
             kV = 0.6,
             kA = 0,
-            // A feedforward to overcome friction (will need to reverse direction depending on movement - not sure how to apply this setting to the controller.)
-            // FF = 0,
-            ROTATION_TOLERANCE = 2,
+            ROTATION_TOLERANCE = 0.1,
             MAX_VELOCITY = 60,
             MAX_ACCEL = 120;
     }
@@ -73,7 +73,8 @@ public class Constants {
             // kG = 0,
             // kS = 0,
             // kV = 0,
-            MAX_ROTATIONS = 0;
+            GEAR_RATIO = 16.8,
+            MAX_ROTATIONS = GEAR_RATIO / 2;
     }
 
     public static class Climb {

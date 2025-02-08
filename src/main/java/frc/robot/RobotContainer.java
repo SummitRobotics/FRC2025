@@ -11,7 +11,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -30,10 +29,6 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -45,6 +40,7 @@ import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.oi.CommandControllerWrapper;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.Functions;
@@ -74,7 +70,7 @@ public class RobotContainer {
 
     @Logged(name = "Superstructure")
     public final Superstructure superstructure = new Superstructure(buttonBox);
-    // public final Scrubber scrubber = new Scrubber();
+    // public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
     
     // Path follower
     private final SendableChooser<Command> autoChooser;
@@ -180,6 +176,7 @@ public class RobotContainer {
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Auto Mode", autoChooser);
+        SmartDashboard.putData("Superstructure", superstructure);
         // SmartDashboard.putData("One Left", selectOneLeft);
         // SmartDashboard.putData("One Right", selectOneRight);
         // SmartDashboard.putData("Two Left", selectTwoLeft);
@@ -237,8 +234,6 @@ public class RobotContainer {
         buttonBox.getTrigger(Button.MO_PRESET).whileTrue(superstructure.setManual(
             () -> gunnerController.getLeftTriggerAxis() * Constants.Elevator.MAX_ROTATIONS,
             () -> Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS + gunnerController.getRightTriggerAxis() * (Constants.Manipulator.MAX_ROTATIONS - Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS),
-            // () -> (gunnerController.povUp().getAsBoolean() ? 1 : 0) + (gunnerController.povDown().getAsBoolean() ? -1 : 0),
-            // () -> (gunnerController.povLeft().getAsBoolean() ? 1 : 0) + (gunnerController.povRight().getAsBoolean() ? -1 : 0)
             () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
             () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
         ));
@@ -247,24 +242,11 @@ public class RobotContainer {
 
         // Bind the button box presets
         for (SuperstructurePreset preset : SuperstructurePreset.values()) {
-            // Sequence to move to the safe upper stow preset first before anything else to avoid collisions
             if (preset.button != null) buttonBox.getTrigger(preset.button).onTrue(
-                new SequentialCommandGroup(
-                    // new ConditionalCommand(
-                        // superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint),
-                        // new InstantCommand(),
-                        // () -> (superstructure.getState() == SuperstructurePreset.L3
-                            // || superstructure.getState() == SuperstructurePreset.L3_GO
-                            // || superstructure.getState() == SuperstructurePreset.L4
-                            // || superstructure.getState() == SuperstructurePreset.L4_GO
-                        // )
-                    // ),
-                    // superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint),
-                    superstructure.setPresetWithBeltOverride(
-                        preset,
-                        () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
-                        () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
-                    )
+                superstructure.setPresetWithBeltOverride(
+                    preset,
+                    () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
+                    () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
             ));
         }
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
