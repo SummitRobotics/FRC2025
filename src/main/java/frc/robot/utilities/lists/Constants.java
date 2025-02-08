@@ -37,7 +37,7 @@ public class Constants {
             kV = 0.15,
             kA = 0,
             MAX_ROTATIONS = 15.5,
-            ROTATION_TOLERANCE = 0.25;
+            ROTATION_TOLERANCE = 1;
     }
 
     public static class Manipulator {
@@ -58,7 +58,7 @@ public class Constants {
             kG = 0.27,
             kV = 0.6,
             kA = 0,
-            ROTATION_TOLERANCE = 0.01,
+            ROTATION_TOLERANCE = 0.1,
             MAX_VELOCITY = 60,
             MAX_ACCEL = 120;
     }

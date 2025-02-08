@@ -31,7 +31,7 @@ public class Superstructure extends SubsystemBase {
     // State machine with encoder presets
     public static enum SuperstructurePreset {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
-        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
+        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.97, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
         RECEIVE(1.9, -0.111816, 0, 0, "Receive", Button.RECEIVE_PRESET),
         L1(0.1, Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.094482, 0, 0, "2", Button.L2_PRESET),
