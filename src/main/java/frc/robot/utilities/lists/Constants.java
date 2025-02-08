@@ -56,9 +56,7 @@ public class Constants {
             kG = 0.27,
             kV = 0.6,
             kA = 0,
-            // A feedforward to overcome friction (will need to reverse direction depending on movement - not sure how to apply this setting to the controller.)
-            // FF = 0,
-            ROTATION_TOLERANCE = 2,
+            ROTATION_TOLERANCE = 0.01,
             MAX_VELOCITY = 60,
             MAX_ACCEL = 120;
     }

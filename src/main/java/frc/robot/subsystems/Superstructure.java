@@ -39,7 +39,7 @@ public class Superstructure extends SubsystemBase {
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, 1, "2", null),
         L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, 1, "3", null),
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
-        NONE(0, 0, 0, 0, "None", null); // being manually overridden to something
+        MANUAL_OVERRIDE(0, 0, 0, 0, "Manual Override", null); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRotations;
         public double leftBelt;
@@ -169,35 +169,31 @@ public class Superstructure extends SubsystemBase {
         pivot.setControl(pivotReq.withPosition(rotations));
     }
 
-    public Command setPreset(SuperstructurePreset preset) {
-        return this.run(() -> {
-            setElevator(preset.elevatorRotations);
-            setPivot(preset.pivotRotations);
-            beltLeft.set(preset.leftBelt);
-            beltRight.set(preset.rightBelt);
-            state = preset;
-        });
-    }
-
-    public Command setManual(DoubleSupplier elevatorRotations, DoubleSupplier pivotRotations, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
+    private Command set(DoubleSupplier elevatorRotations, DoubleSupplier pivotRotations, DoubleSupplier leftBelt, DoubleSupplier rightBelt, boolean isManual) {
         return this.run(() -> {
             setElevator(elevatorRotations.getAsDouble());
             setPivot(pivotRotations.getAsDouble());
             beltLeft.set(leftBelt.getAsDouble());
             beltRight.set(rightBelt.getAsDouble());
-            state = SuperstructurePreset.NONE;
+            if (isManual) state = SuperstructurePreset.MANUAL_OVERRIDE;
         });
     }
 
+    public Command setManual(DoubleSupplier elevatorRotations, DoubleSupplier pivotRotations, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
+        return set(elevatorRotations, pivotRotations, leftBelt, rightBelt, true);
+    }
+
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
-        return this.run(() -> {
-            // System.out.println("Moving elevator...");
-            setElevator(preset.elevatorRotations);
-            setPivot(preset.pivotRotations);
-            beltLeft.set(leftBelt.getAsDouble());
-            beltRight.set(rightBelt.getAsDouble());
-            state = preset;
-        });
+        Command setTo = set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
+        if (preset.elevatorRotations > 1 || preset.pivotRotations < Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS) {
+            return setPreset(SuperstructurePreset.STOW_UPPER).until(this::atSetpoint).andThen(setTo);
+        }
+        state = preset;
+        return setTo;
+    }
+
+    public Command setPreset(SuperstructurePreset preset) {
+        return setPresetWithBeltOverride(preset, () -> preset.leftBelt, () -> preset.rightBelt);
     }
 
     public SuperstructurePreset getState() {
