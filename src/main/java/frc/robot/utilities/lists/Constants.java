@@ -23,11 +23,11 @@ public class Constants {
             ELEVATOR_ID_A = 13,
             ELEVATOR_ID_B = 14;
         public static final AngularVelocity
-            // ELEVATOR_MM_VEL = RotationsPerSecond.of(30);
-            ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
+            // ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
+            ELEVATOR_MM_VEL = RotationsPerSecond.of(30);
         public static final AngularAcceleration
-            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
-            // ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
+            // ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
+            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
         public static final double
             P = 1,
             I = 0,
@@ -73,7 +73,8 @@ public class Constants {
             // kG = 0,
             // kS = 0,
             // kV = 0,
-            MAX_ROTATIONS = 0;
+            GEAR_RATIO = 16.8,
+            MAX_ROTATIONS = GEAR_RATIO / 2;
     }
 
     public static class Climb {

@@ -17,9 +17,10 @@ public class Scrubber extends SubsystemBase {
 
     private final TalonFX scrubber = new TalonFX(Constants.Scrubber.SCRUBBER_ID);
     private final PositionVoltage scrubberReq = new PositionVoltage(0).withSlot(0);
-    // private final ArmFeedforward scrubberFF = new ArmFeedforward(Constants.Scrubber.kS, Constants.Scrubber.kG, Constants.Scrubber.kV);
+    private DoubleSupplier manipulatorPivot;
 
-    public Scrubber() {
+    public Scrubber(DoubleSupplier manipulatorPivot) {
+        this.manipulatorPivot = manipulatorPivot;
         TalonFXConfiguration scrubberConfig = new TalonFXConfiguration();
         scrubberConfig.Slot0
             .withKP(Constants.Scrubber.P)
@@ -27,15 +28,19 @@ public class Scrubber extends SubsystemBase {
             .withKD(Constants.Scrubber.D);
         scrubberConfig.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
         scrubberConfig.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+        scrubberConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        scrubberConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        scrubberConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Scrubber.MAX_ROTATIONS;
+        scrubberConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Scrubber.GEAR_RATIO * manipulatorPivot.getAsDouble();
         scrubber.getConfigurator().apply(scrubberConfig);
+        scrubber.setPosition(Constants.Scrubber.GEAR_RATIO * manipulatorPivot.getAsDouble());
     }
 
-    public Command set(DoubleSupplier encoder) {
-        return this.run(() -> scrubber.setControl(scrubberReq
-            .withPosition(encoder.getAsDouble())
-            .withLimitForwardMotion(scrubber.getPosition().getValueAsDouble() > Constants.Scrubber.MAX_ROTATIONS)
-            .withLimitReverseMotion(scrubber.getPosition().getValueAsDouble() < 0)
-        ));
+    public Command set(DoubleSupplier target) {
+        // Cannot exceed position of the manipulator; it'd otherwise collide.
+        return this.run(() -> scrubber.setControl(scrubberReq.withPosition(
+            Math.min(target.getAsDouble(), Constants.Scrubber.GEAR_RATIO * manipulatorPivot.getAsDouble())
+        )));
     }
 
     public Command flick() {

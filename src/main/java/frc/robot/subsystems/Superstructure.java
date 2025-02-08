@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
+import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
 
 public class Superstructure extends SubsystemBase {
@@ -172,8 +173,16 @@ public class Superstructure extends SubsystemBase {
 
     private Command set(DoubleSupplier elevatorRotations, DoubleSupplier pivotRotations, DoubleSupplier leftBelt, DoubleSupplier rightBelt, boolean isManual) {
         return this.run(() -> {
-            setElevator(elevatorRotations.getAsDouble());
-            setPivot(pivotRotations.getAsDouble());
+
+            // Do not collide mechanisms
+            boolean pivotSafe =
+                pivotCancoder.getPosition().getValueAsDouble() > SuperstructurePreset.STOW_UPPER.pivotRotations - Constants.Manipulator.ROTATION_TOLERANCE;
+            boolean elevatorSafe = 
+                Functions.withinTolerance(elevatorA.getPosition().getValueAsDouble(), elevatorRotations.getAsDouble(), Constants.Elevator.ROTATION_TOLERANCE);
+            // Freeze the elevator until pivot's safe
+            setElevator(pivotSafe ? elevatorRotations.getAsDouble() : elevatorA.getPosition().getValueAsDouble());
+            // Save the pivot until elevator's positioned
+            setPivot(elevatorSafe ? pivotRotations.getAsDouble() : SuperstructurePreset.STOW_UPPER.pivotRotations);
             beltLeft.set(leftBelt.getAsDouble());
             beltRight.set(rightBelt.getAsDouble());
             if (isManual) state = SuperstructurePreset.MANUAL_OVERRIDE;
@@ -185,17 +194,8 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
-        Command setTo = set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
-        if (
-            getState() == SuperstructurePreset.MANUAL_OVERRIDE ||
-            (preset != SuperstructurePreset.getCorrespondingGoState(getState())
-            && preset != SuperstructurePreset.STOW_UPPER
-            && (preset.elevatorRotations > 1 || preset.pivotRotations < Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS))
-        ) {
-            return setPreset(SuperstructurePreset.STOW_UPPER).until(this::atSetpoint).andThen(setTo);
-        }
         state = preset;
-        return setTo;
+        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
     }
 
     public Command setPreset(SuperstructurePreset preset) {
@@ -209,6 +209,10 @@ public class Superstructure extends SubsystemBase {
     public boolean atSetpoint() {
         return elevatorA.getClosedLoopError().getValueAsDouble() < Constants.Elevator.ROTATION_TOLERANCE
             && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE;
+    }
+
+    public double pivotRotations() {
+        return pivotCancoder.getPosition().getValueAsDouble();
     }
 
     // SysID to find elevator gains
