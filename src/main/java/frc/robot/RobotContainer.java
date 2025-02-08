@@ -42,12 +42,14 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.oi.CommandControllerWrapper;
+import frc.robot.sensors.WaveshareCanToFSensor;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
+
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -120,9 +122,8 @@ public class RobotContainer {
     // Field2d object for simulation
     private final Field2d field = new Field2d();
 
-    // CAN
-    private final CAN tofDevice = new CAN(40);
-    //
+    // Time-of-flight sensor
+    private final WaveshareCanToFSensor tofSensor = new WaveshareCanToFSensor(Constants.Sensor.TOF_CAN_ID);
 
     // Ghost pointer positions to show which node is selected
     private final Pose2d
@@ -201,6 +202,7 @@ public class RobotContainer {
         // SmartDashboard.putData("L3", selectL3);
         // SmartDashboard.putData("L4", selectL4);
         SmartDashboard.putData("Field", field);
+        SmartDashboard.putData("Waveshare TOF Sensor", tofSensor);
         configureBindings();
         FollowPathCommand.warmupCommand().schedule();
         PathfindingCommand.warmupCommand().schedule();
@@ -307,14 +309,7 @@ public class RobotContainer {
             field.getObject("PathTrajectory").setPoses(activePath);
         }
 
-        /// START-CAN
-        CANData data = new CANData();
-        boolean received = tofDevice.readPacketLatest(0, data);
-        if (received) {
-            // Process received data
-            SmartDashboard.putNumber("ToF Distance", (data.data[0] << 16) | data.data[1] << 8 | data.data[2]);
-            SmartDashboard.putNumber("ToF Status", (data.data[3]));
-        }
-        /// END-CAN
+        // Update CAN TOF sensor readings.
+        tofSensor.update();
     }
 }

@@ -90,4 +90,8 @@ public class Constants {
             kA = 0,
             MAX_ROTATIONS = 0;
     }
+
+    public static class Sensor {
+        public static final int TOF_CAN_ID = 40;
+    }
 }
