@@ -14,6 +14,8 @@ public class Constants {
         public static int
             DRIVER_XBOX = 0,
             GUNNER_XBOX = 1,
+            DRIVER_PS5 = DRIVER_XBOX,
+            GUNNER_PS5 = GUNNER_XBOX,
             BUTTON_BOX = 2;
     }
     public static class Elevator {

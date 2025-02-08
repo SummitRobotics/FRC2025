@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -33,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AutoPlace;
@@ -41,6 +43,7 @@ import frc.robot.commands.AutoPlace.Side;
 import frc.robot.generated.TunerConstants;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
+import frc.robot.oi.CommandControllerWrapper;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
@@ -61,8 +64,8 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     // Controllers
-    private final CommandXboxController driverXBox = new CommandXboxController(Constants.OI.DRIVER_XBOX);
-    private final CommandXboxController gunnerXBox = new CommandXboxController(Constants.OI.GUNNER_XBOX);
+    private final CommandControllerWrapper driverController;
+    private final CommandControllerWrapper gunnerController;
     private final ButtonBox buttonBox = new ButtonBox(Constants.OI.BUTTON_BOX);
 
     // Subsystems
@@ -87,13 +90,13 @@ public class RobotContainer {
         // return new InstantCommand(() -> {
             // this.hexSide = hexSide;
             // this.leftRight = leftRight;
-            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
+            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
         // });
     // }
     // private final Command generateSelectCommand(SuperstructurePreset l) {
         // return new InstantCommand(() -> {
             // this.l = l;
-            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
+            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSide, leftRight)));
         // });
     // }
 
@@ -134,6 +137,19 @@ public class RobotContainer {
         SIX_RIGHT = new Pose2d(3.697, 5.061, Rotation2d.fromDegrees(300));
 
     public RobotContainer() {
+        // Check if PS5 controllers should be used
+        boolean usePS5Controllers = Boolean.parseBoolean(System.getenv("USE_PS5_CONTROLLERS"));
+
+        if (usePS5Controllers) {
+            driverController = new CommandControllerWrapper(new CommandPS5Controller(Constants.OI.DRIVER_PS5));
+            gunnerController = new CommandControllerWrapper(new CommandPS5Controller(Constants.OI.GUNNER_PS5));
+            System.out.println("Controller Type: PS5");            
+        } else {
+            driverController = new CommandControllerWrapper(new CommandXboxController(Constants.OI.DRIVER_XBOX));
+            gunnerController = new CommandControllerWrapper(new CommandXboxController(Constants.OI.GUNNER_XBOX));
+            System.out.println("Controller Type: Xbox");            
+        }
+
         autoChooser = AutoBuilder.buildAutoChooser("Tests");
         lChooser = new SendableChooser<SuperstructurePreset>();
         hexSideChooser = new SendableChooser<HexSide>();
@@ -152,13 +168,13 @@ public class RobotContainer {
         leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
         // lChooser.onChange((SuperstructurePreset l) -> {
-            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
         // });
         // hexSideChooser.onChange((HexSide hexSide) -> {
-            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
+            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
         // });
         // leftRightChooser.onChange((leftRight) -> {
-            // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
+            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
         // });
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
@@ -192,42 +208,42 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-driverXBox.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-driverXBox.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-driverXBox.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-driverController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-driverController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-driverController.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
-        driverXBox.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        driverXBox.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-driverXBox.getLeftY(), -driverXBox.getLeftX()))
+        driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        driverController.b().whileTrue(drivetrain.applyRequest(() ->
+            point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))
         ));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
-        // driverXBox.back().and(driverXBox.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        // driverXBox.back().and(driverXBox.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        // driverXBox.start().and(driverXBox.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        // driverXBox.start().and(driverXBox.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-        driverXBox.back().and(driverXBox.y()).whileTrue(superstructure.sysIdDynamic(Direction.kForward));
-        driverXBox.back().and(driverXBox.x()).whileTrue(superstructure.sysIdDynamic(Direction.kReverse));
-        driverXBox.start().and(driverXBox.y()).whileTrue(superstructure.sysIdQuasistatic(Direction.kForward));
-        driverXBox.start().and(driverXBox.x()).whileTrue(superstructure.sysIdQuasistatic(Direction.kReverse));
+        // driverController.back().and(driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        // driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        // driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        // driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        driverController.back().and(driverController.y()).whileTrue(superstructure.sysIdDynamic(Direction.kForward));
+        driverController.back().and(driverController.x()).whileTrue(superstructure.sysIdDynamic(Direction.kReverse));
+        driverController.start().and(driverController.y()).whileTrue(superstructure.sysIdQuasistatic(Direction.kForward));
+        driverController.start().and(driverController.x()).whileTrue(superstructure.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        driverXBox.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // Superstructure MOs
         buttonBox.getTrigger(Button.MO_PRESET).whileTrue(superstructure.setManual(
-            () -> gunnerXBox.getLeftTriggerAxis() * Constants.Elevator.MAX_ROTATIONS,
-            () -> Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS + gunnerXBox.getRightTriggerAxis() * (Constants.Manipulator.MAX_ROTATIONS - Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS),
-            // () -> (gunnerXBox.povUp().getAsBoolean() ? 1 : 0) + (gunnerXBox.povDown().getAsBoolean() ? -1 : 0),
-            // () -> (gunnerXBox.povLeft().getAsBoolean() ? 1 : 0) + (gunnerXBox.povRight().getAsBoolean() ? -1 : 0)
-            () -> (gunnerXBox.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? 1 : 0),
-            () -> (gunnerXBox.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? -1 : 0)
+            () -> gunnerController.getLeftTriggerAxis() * Constants.Elevator.MAX_ROTATIONS,
+            () -> Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS + gunnerController.getRightTriggerAxis() * (Constants.Manipulator.MAX_ROTATIONS - Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS),
+            // () -> (gunnerController.povUp().getAsBoolean() ? 1 : 0) + (gunnerController.povDown().getAsBoolean() ? -1 : 0),
+            // () -> (gunnerController.povLeft().getAsBoolean() ? 1 : 0) + (gunnerController.povRight().getAsBoolean() ? -1 : 0)
+            () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
+            () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
         ));
         // Scrubber MOs
-        // buttonBox.getTrigger(Button.MO_PRESET).whileTrue(scrubber.set(() -> gunnerXBox.x().getAsBoolean() ? Constants.Scrubber.MAX_ROTATIONS : 0));
+        // buttonBox.getTrigger(Button.MO_PRESET).whileTrue(scrubber.set(() -> gunnerController.x().getAsBoolean() ? Constants.Scrubber.MAX_ROTATIONS : 0));
 
         // Bind the button box presets
         for (SuperstructurePreset preset : SuperstructurePreset.values()) {
@@ -246,15 +262,15 @@ public class RobotContainer {
                     // superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint),
                     superstructure.setPresetWithBeltOverride(
                         preset,
-                        () -> (gunnerXBox.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? 1 : 0),
-                        () -> (gunnerXBox.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerXBox.rightBumper().getAsBoolean() ? -1 : 0)
+                        () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
+                        () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
                     )
             ));
         }
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        // driverXBox.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
     }
 
     public Command getAutonomousCommand() {
