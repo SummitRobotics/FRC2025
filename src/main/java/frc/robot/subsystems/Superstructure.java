@@ -37,10 +37,10 @@ public class Superstructure extends SubsystemBase {
         L2(0.1, 0.094482, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.118408, 0, 0, "3", Button.L3_PRESET),
         L4(14.85209, 0.077148, 0, 0, "4", Button.L4_PRESET),
-        L1_GO(L1.elevatorRotations, L1.pivotRotations, 1, 1, "1", null),
-        L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, 1, "2", null),
-        L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, 1, "3", null),
-        L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
+        L1_GO(L1.elevatorRotations, L1.pivotRotations, 1, -1, "1", null),
+        L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, -1, "2", null),
+        L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, -1, "3", null),
+        L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, -1, "4", null),
         MANUAL_OVERRIDE(0, 0, 0, 0, "Manual Override", null); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRotations;
@@ -86,6 +86,8 @@ public class Superstructure extends SubsystemBase {
     private final TalonFX pivot = new TalonFX(Constants.Manipulator.PIVOT_ID);
     private final MotionMagicVoltage pivotReq = new MotionMagicVoltage(0).withSlot(0);
     private final CANcoder pivotCancoder = new CANcoder(Constants.Manipulator.CANCODER_ID);
+    private boolean pivotSafe = false;
+    private boolean elevatorSafe = false;
 
     // Button box LED compatability
     ButtonBox buttonBox;
@@ -175,9 +177,9 @@ public class Superstructure extends SubsystemBase {
         return this.run(() -> {
 
             // Do not collide mechanisms
-            boolean pivotSafe =
+            pivotSafe =
                 pivotCancoder.getPosition().getValueAsDouble() > SuperstructurePreset.STOW_UPPER.pivotRotations - Constants.Manipulator.ROTATION_TOLERANCE;
-            boolean elevatorSafe = 
+            elevatorSafe = 
                 Functions.withinTolerance(elevatorA.getPosition().getValueAsDouble(), elevatorRotations.getAsDouble(), Constants.Elevator.ROTATION_TOLERANCE);
             // Freeze the elevator until pivot's safe
             setElevator(pivotSafe ? elevatorRotations.getAsDouble() : elevatorA.getPosition().getValueAsDouble());
@@ -207,8 +209,8 @@ public class Superstructure extends SubsystemBase {
     }
 
     public boolean atSetpoint() {
-        return elevatorA.getClosedLoopError().getValueAsDouble() < Constants.Elevator.ROTATION_TOLERANCE
-            && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE;
+        return pivotSafe && elevatorSafe && elevatorA.getClosedLoopError().getValueAsDouble() < Constants.Elevator.ROTATION_TOLERANCE
+            && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE / 16 && pivot.getVelocity().getValueAsDouble() < 0.005;
     }
 
     public double pivotRotations() {

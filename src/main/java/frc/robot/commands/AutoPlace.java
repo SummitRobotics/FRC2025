@@ -4,6 +4,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -64,8 +65,8 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraints = new PathConstraints(
-            3.0, 4.0,
-            Units.degreesToRadians(270), Units.degreesToRadians(360));
+            3.0 / 2, 4.0 / 2,
+            Units.degreesToRadians(270 / 2), Units.degreesToRadians(360 / 2));
     // To turn the robot correctly between paths
     // private SwerveRequest.FieldCentricFacingAngle turnRequest = new SwerveRequest.FieldCentricFacingAngle();
 
@@ -86,10 +87,10 @@ public class AutoPlace extends SequentialCommandGroup {
             // AutoBuilder.pathfindToPose(node.hexSide.waypoint, constraints, 0),
             // TODO - this line is meant to add another directional align step but does not properly turn the robot
             // drivetrain.applyRequest(() -> turnRequest).until(() -> drivetrain.getState().Pose.getRotation().minus(node.hexSide.waypoint.getRotation()).getDegrees() < 5),
-            new ParallelDeadlineGroup(
-                AutoBuilder.pathfindThenFollowPath(path, constraints),
-                superstructure.setPreset(node.l)//.until(() -> superstructure.atSetpoint())
-            ),
+            // new ParallelCommandGroup(
+            AutoBuilder.pathfindThenFollowPath(path, constraints),
+            superstructure.setPreset(node.l).until(() -> superstructure.atSetpoint()),
+            new WaitCommand(0.5),
             new ParallelDeadlineGroup(
                 new WaitCommand(1),
                 superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))

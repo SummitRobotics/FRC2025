@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AutoPlace;
 import frc.robot.commands.AutoPlace.HexSide;
+import frc.robot.commands.AutoPlace.Node;
 import frc.robot.commands.AutoPlace.Side;
 import frc.robot.generated.TunerConstants;
 import frc.robot.oi.ButtonBox;
@@ -163,15 +164,15 @@ public class RobotContainer {
         leftRightChooser.setDefaultOption("Left", AutoPlace.Side.LEFT);
         leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
-        // lChooser.onChange((SuperstructurePreset l) -> {
-            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
-        // });
-        // hexSideChooser.onChange((HexSide hexSide) -> {
-            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
-        // });
-        // leftRightChooser.onChange((leftRight) -> {
-            // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
-        // });
+        lChooser.onChange((SuperstructurePreset l) -> {
+            driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        });
+        hexSideChooser.onChange((HexSide hexSide) -> {
+            driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected())));
+        });
+        leftRightChooser.onChange((leftRight) -> {
+            driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight)));
+        });
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
@@ -211,7 +212,7 @@ public class RobotContainer {
             )
         );
 
-        driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        // driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
         driverController.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))
         ));
@@ -252,7 +253,7 @@ public class RobotContainer {
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        // driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
+        driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected())));
     }
 
     public Command getAutonomousCommand() {
