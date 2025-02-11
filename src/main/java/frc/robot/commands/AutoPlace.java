@@ -4,13 +4,16 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
+import frc.robot.utilities.lists.Constants;
 
 public class AutoPlace extends SequentialCommandGroup {
 
@@ -56,10 +59,12 @@ public class AutoPlace extends SequentialCommandGroup {
         public SuperstructurePreset l;
         public Side side;
         public HexSide hexSide;
-        public Node(SuperstructurePreset l, HexSide hexSide, Side side) {
+        public SuperstructurePreset scrub;
+        public Node(SuperstructurePreset l, HexSide hexSide, Side side, SuperstructurePreset scrub) {
             this.l = l;
             this.side = side;
             this.hexSide = hexSide;
+            this.scrub = scrub;
         }
     }
 
@@ -67,11 +72,8 @@ public class AutoPlace extends SequentialCommandGroup {
     private PathConstraints constraints = new PathConstraints(
             3.0 / 2, 4.0 / 2,
             Units.degreesToRadians(270 / 2), Units.degreesToRadians(360 / 2));
-    // To turn the robot correctly between paths
-    // private SwerveRequest.FieldCentricFacingAngle turnRequest = new SwerveRequest.FieldCentricFacingAngle();
 
-    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Node node) {
-        // turnRequest.TargetDirection = node.hexSide.waypoint.getRotation();
+    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
         PathPlannerPath path;
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
@@ -83,20 +85,34 @@ public class AutoPlace extends SequentialCommandGroup {
             e.printStackTrace();
             throw (new RuntimeException("Loaded a path that does not exist."));
         }
-        addCommands(
-            // AutoBuilder.pathfindToPose(node.hexSide.waypoint, constraints, 0),
-            // TODO - this line is meant to add another directional align step but does not properly turn the robot
-            // drivetrain.applyRequest(() -> turnRequest).until(() -> drivetrain.getState().Pose.getRotation().minus(node.hexSide.waypoint.getRotation()).getDegrees() < 5),
-            // new ParallelCommandGroup(
-            AutoBuilder.pathfindThenFollowPath(path, constraints),
+
+        Command move = AutoBuilder.pathfindThenFollowPath(path, constraints);
+        SequentialCommandGroup place = new SequentialCommandGroup(
+            // AutoBuilder.pathfindThenFollowPath(path, constraints),
             superstructure.setPreset(node.l).until(() -> superstructure.atSetpoint()),
-            new WaitCommand(0.5),
+            new WaitCommand(node.l == SuperstructurePreset.L4 ? 1 : 0.5), // TODO - may be a better way to do this delay; atSetpoint isn't really working
             new ParallelDeadlineGroup(
                 new WaitCommand(1),
                 superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
-            ),
-            superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
+            )
         );
-        // addRequirements(drivetrain, superstructure); // Is this necessary?
+
+        SequentialCommandGroup scrub = new SequentialCommandGroup(
+            superstructure.setPreset(node.scrub).until(() -> superstructure.atSetpoint()),
+            new WaitCommand(0.5),
+            new ParallelDeadlineGroup(
+                new WaitCommand(1),
+                scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS)
+            )
+        );
+
+        addCommands(new ParallelDeadlineGroup(move, scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations)));
+        if (node.l != SuperstructurePreset.MANUAL_OVERRIDE) {
+            addCommands(place);
+        }
+        if (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) {
+            addCommands(scrub);
+        }
+        addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER));
     }
 }

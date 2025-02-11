@@ -36,6 +36,7 @@ public class Superstructure extends SubsystemBase {
         L1(0.1, Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.094482, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.118408, 0, 0, "3", Button.L3_PRESET),
+        L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
         L4(14.85209, 0.077148, 0, 0, "4", Button.L4_PRESET),
         L1_GO(L1.elevatorRotations, L1.pivotRotations, 1, -1, "1", null),
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, -1, "2", null),
@@ -210,7 +211,7 @@ public class Superstructure extends SubsystemBase {
 
     public boolean atSetpoint() {
         return pivotSafe && elevatorSafe && elevatorA.getClosedLoopError().getValueAsDouble() < Constants.Elevator.ROTATION_TOLERANCE
-            && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE / 16 && pivot.getVelocity().getValueAsDouble() < 0.005;
+            && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE;// && pivot.getVelocity().getValueAsDouble() < 0.005;
     }
 
     public double pivotRotations() {

@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
+import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
 
 public class Scrubber extends SubsystemBase {
@@ -49,5 +50,9 @@ public class Scrubber extends SubsystemBase {
             new ParallelDeadlineGroup(new WaitCommand(1), set(() -> Constants.Scrubber.MAX_ROTATIONS)),
             set(() -> 0)
         );
+    }
+
+    public boolean safe() {
+        return Functions.withinTolerance(scrubber.getPosition().getValueAsDouble(), Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations, 0.25);
     }
 }
