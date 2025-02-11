@@ -168,8 +168,8 @@ public class RobotContainer {
         leftRightChooser.setDefaultOption("Left", AutoPlace.Side.LEFT);
         leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
         scrubChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
-        scrubChooser.addOption("L2", SuperstructurePreset.STOW_UPPER);
-        scrubChooser.addOption("L3", SuperstructurePreset.L3_SCRUB);
+        scrubChooser.addOption("Low", SuperstructurePreset.STOW_UPPER);
+        scrubChooser.addOption("High", SuperstructurePreset.L3_SCRUB);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
         lChooser.onChange((SuperstructurePreset l) -> {
             driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
@@ -209,6 +209,13 @@ public class RobotContainer {
         configureBindings();
         FollowPathCommand.warmupCommand().schedule();
         PathfindingCommand.warmupCommand().schedule();
+    }
+
+    private void updateFMSInfo()
+    {
+        // Fetch info from the DriverStation and update the FMSInfo table
+        double matchTime = DriverStation.getMatchTime();
+        NetworkTableInstance.getDefault().getTable("FMSInfo").getEntry("MatchTime").setDouble(matchTime);
     }
 
     private void configureBindings() {
@@ -273,6 +280,10 @@ public class RobotContainer {
         return autoChooser.getSelected();
     }
 
+    public void simulationPeriodic() {
+        // Called every robot simulation period
+    }
+
     public void robotPeriodic() {
         buttonBox.sendMessage();
         // Update Field2d object
@@ -313,5 +324,8 @@ public class RobotContainer {
             // field.getObject("PathTrajectory").setTrajectory(trajectory);
             field.getObject("PathTrajectory").setPoses(activePath);
         }
+
+        // TODO: Check if the FMSInfo is being published via the FMS in real matches
+        updateFMSInfo();
     }
 }
