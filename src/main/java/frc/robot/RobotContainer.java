@@ -277,7 +277,8 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+        return new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected()));
+        // return autoChooser.getSelected();
     }
 
     public void simulationPeriodic() {
@@ -285,6 +286,7 @@ public class RobotContainer {
     }
 
     public void robotPeriodic() {
+        superstructure.updateMechanismDiagram();
         buttonBox.sendMessage();
         // Update Field2d object
         field.setRobotPose(drivetrain.getState().Pose);

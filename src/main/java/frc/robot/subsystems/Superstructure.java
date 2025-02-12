@@ -25,6 +25,10 @@ import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Superstructure extends SubsystemBase {
 
@@ -93,6 +97,20 @@ public class Superstructure extends SubsystemBase {
     // Button box LED compatability
     ButtonBox buttonBox;
 
+    // Create a Mechanism2d representing the superstructure.
+    private final double elevatorBaseHeight = 20; // Elevator minimum height in inches.
+
+    // Assume a diagram area 120" x 80" (adjust dimensions as needed).
+    private final Mechanism2d superstructure2d = new Mechanism2d(120, 80);
+    // Base root fixed at (60, elevatorBaseHeight)
+    private final MechanismRoot2d baseRoot = superstructure2d.getRoot("Base", 60, elevatorBaseHeight);
+    // Elevator extension ligament: its length represents the elevator travel above the base.
+    // Initially, elevator is at minimum height so set length to 0.
+    private final MechanismLigament2d elevatorExtension = baseRoot.append(new MechanismLigament2d("Elevator", 0, 90));
+    // Pivot ligament attached to the top of the elevator extension.
+    // Its angle (relative to vertical) represents the pivot angle.
+    private final MechanismLigament2d pivotLigament = elevatorExtension.append(new MechanismLigament2d("Pivot", 20, 0));
+
     public Superstructure(ButtonBox buttonBox) {
         // Elevator
         // For elevator control see https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/device-specific/talonfx/motion-magic.html
@@ -149,6 +167,9 @@ public class Superstructure extends SubsystemBase {
         setPreset(SuperstructurePreset.STOW_LOWER);
 
         this.buttonBox = buttonBox;
+
+        // Post the Mechanism2d diagram onto SmartDashboard.
+        SmartDashboard.putData("Superstructure Diagram", superstructure2d);
     }
 
     @Override
@@ -210,6 +231,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public boolean atSetpoint() {
+        // Should this really be looking at pivotSafe and elevatorSafe?
         return pivotSafe && elevatorSafe && elevatorA.getClosedLoopError().getValueAsDouble() < Constants.Elevator.ROTATION_TOLERANCE
             && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE;// && pivot.getVelocity().getValueAsDouble() < 0.005;
     }
@@ -255,5 +277,31 @@ public class Superstructure extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("State", getState()::name, null);
+    }
+
+    /**
+     * Call periodically to update the mechanism diagram with current sensor readings.
+     */
+    public void updateMechanismDiagram() {
+        // Compute elevator height in inches.
+        // Elevator goes from 10" (0 rotations) to 70" (14.85 rotations).
+        double elevatorHeightIn = 10 + (getElevatorRotations() / 14.85) * (70 - 10);
+        // Update elevator extension ligament length.
+        // The extension length is the difference between current height and the base.
+        double extensionLength = elevatorHeightIn - elevatorBaseHeight;
+        elevatorExtension.setLength(extensionLength);
+        
+        // Update pivot ligament angle.
+        // Pivot rotates from -0.246 to 0.3 rotations; convert to degrees.
+        double pivotAngleDeg = pivotRotations() * 360;
+        pivotLigament.setAngle(pivotAngleDeg);
+        
+        // Optionally, you can publish the computed elevator height for debugging.
+        SmartDashboard.putNumber("Elevator Height (in)", elevatorHeightIn);
+    }
+    
+    public double getElevatorRotations() {
+        // Return the current elevator sensor reading in encoder rotations.
+        return elevatorA.getPosition().getValueAsDouble();
     }
 }
