@@ -1,12 +1,19 @@
 package frc.robot.commands;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
+import com.pathplanner.lib.util.PathPlannerLogging;
+
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -87,21 +94,22 @@ public class AutoPlace extends SequentialCommandGroup {
         }
 
         Command move = AutoBuilder.pathfindThenFollowPath(path, constraints);
+        // new EventTrigger("Align").onTrue(new InstantCommand(() -> CommandScheduler.getInstance().schedule(
+            // superstructure.setPreset(node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE ? node.scrub : SuperstructurePreset.STOW_UPPER))
+        // )));
         SequentialCommandGroup place = new SequentialCommandGroup(
-            // AutoBuilder.pathfindThenFollowPath(path, constraints),
             superstructure.setPreset(node.l).until(() -> superstructure.atSetpoint()),
-            new WaitCommand(node.l == SuperstructurePreset.L4 ? 1 : 0.5), // TODO - may be a better way to do this delay; atSetpoint isn't really working
+            new WaitCommand(node.l == SuperstructurePreset.L4 ? 1 : 0.5),
             new ParallelDeadlineGroup(
-                new WaitCommand(1),
+                new WaitCommand(0.5),
                 superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
             )
         );
-
         SequentialCommandGroup scrub = new SequentialCommandGroup(
             superstructure.setPreset(node.scrub).until(() -> superstructure.atSetpoint()),
             new WaitCommand(0.5),
             new ParallelDeadlineGroup(
-                new WaitCommand(1),
+                new WaitCommand(0.5),
                 scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS)
             )
         );

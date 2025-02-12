@@ -165,8 +165,8 @@ public class RobotContainer {
         hexSideChooser.addOption("4", AutoPlace.HexSide.FOUR);
         hexSideChooser.addOption("5", AutoPlace.HexSide.FIVE);
         hexSideChooser.addOption("6", AutoPlace.HexSide.SIX);
-        leftRightChooser.setDefaultOption("Left", AutoPlace.Side.LEFT);
-        leftRightChooser.addOption("Right", AutoPlace.Side.RIGHT);
+        leftRightChooser.setDefaultOption("A", AutoPlace.Side.LEFT);
+        leftRightChooser.addOption("B", AutoPlace.Side.RIGHT);
         scrubChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
         scrubChooser.addOption("Low", SuperstructurePreset.STOW_UPPER);
         scrubChooser.addOption("High", SuperstructurePreset.L3_SCRUB);

@@ -34,7 +34,7 @@ public class Superstructure extends SubsystemBase {
         STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.97, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
         RECEIVE(1.9, -0.111816, 0, 0, "Receive", Button.RECEIVE_PRESET),
         L1(0.1, Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
-        L2(0.1, 0.094482, 0, 0, "2", Button.L2_PRESET),
+        L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.118408, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
         L4(14.85209, 0.077148, 0, 0, "4", Button.L4_PRESET),
