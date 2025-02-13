@@ -1,21 +1,16 @@
 package frc.robot.commands;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
-import com.pathplanner.lib.util.PathPlannerLogging;
-
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
@@ -93,15 +88,28 @@ public class AutoPlace extends SequentialCommandGroup {
             throw (new RuntimeException("Loaded a path that does not exist."));
         }
 
-        Command move = AutoBuilder.pathfindThenFollowPath(path, constraints);
+        // Command move = AutoBuilder.pathfindThenFollowPath(path, constraints);
+        Command move = new SequentialCommandGroup(
+            new ParallelDeadlineGroup(
+                AutoBuilder.pathfindToPoseFlipped(path.getStartingHolonomicPose().get(), constraints),
+                new ConditionalCommand(superstructure.setPreset(node.l), new InstantCommand(), () -> node.l == SuperstructurePreset.L2)
+            ),
+            new ParallelDeadlineGroup(
+                AutoBuilder.followPath(path),
+                superstructure.setPreset(
+                    node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l
+                    : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) ? node.scrub : SuperstructurePreset.STOW_UPPER
+                )
+            )
+        );
         // new EventTrigger("Align").onTrue(new InstantCommand(() -> CommandScheduler.getInstance().schedule(
             // superstructure.setPreset(node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE ? node.scrub : SuperstructurePreset.STOW_UPPER))
         // )));
         SequentialCommandGroup place = new SequentialCommandGroup(
             superstructure.setPreset(node.l).until(() -> superstructure.atSetpoint()),
-            new WaitCommand(node.l == SuperstructurePreset.L4 ? 1 : 0.5),
+            new WaitCommand(/*node.l == SuperstructurePreset.L4 ? 1 :*/ 0.5),
             new ParallelDeadlineGroup(
-                new WaitCommand(0.5),
+                new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
                 superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
             )
         );

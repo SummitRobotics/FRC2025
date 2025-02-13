@@ -4,7 +4,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -200,7 +203,7 @@ public class Functions {
     }
 
     public static Pose2d mirrorPoseToRed(Pose2d pose) {
-        return new Pose2d(
+        return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Blue ? pose : new Pose2d(
             17.5 - pose.getX(),
             8 - pose.getY(),
             pose.getRotation().plus(Rotation2d.fromDegrees(180))

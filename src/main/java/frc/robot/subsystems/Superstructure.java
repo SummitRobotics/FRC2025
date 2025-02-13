@@ -20,7 +20,9 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.devices.CandiCoralSensor;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.utilities.Functions;
@@ -31,11 +33,11 @@ public class Superstructure extends SubsystemBase {
     // State machine with encoder presets
     public static enum SuperstructurePreset {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
-        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.97, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
-        RECEIVE(1.9, -0.111816, 0, 0, "Receive", Button.RECEIVE_PRESET),
+        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.8, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
+        RECEIVE(2.3, -0.130859, 0, 0, "Receive", Button.RECEIVE_PRESET),
         L1(0.1, Constants.Manipulator.CLEAR_OF_ELEVATOR_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
-        L3(4.193848, 0.118408, 0, 0, "3", Button.L3_PRESET),
+        L3(4.193848, 0.145408, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
         L4(14.85209, 0.077148, 0, 0, "4", Button.L4_PRESET),
         L1_GO(L1.elevatorRotations, L1.pivotRotations, 1, -1, "1", null),
@@ -89,6 +91,8 @@ public class Superstructure extends SubsystemBase {
     private final CANcoder pivotCancoder = new CANcoder(Constants.Manipulator.CANCODER_ID);
     private boolean pivotSafe = false;
     private boolean elevatorSafe = false;
+    // Sensor
+    private CandiCoralSensor sensor = new CandiCoralSensor();
 
     // Button box LED compatability
     ButtonBox buttonBox;
@@ -151,6 +155,14 @@ public class Superstructure extends SubsystemBase {
         this.buttonBox = buttonBox;
     }
 
+    public Trigger getCoralSensorIntake() {
+        return sensor.detectedIntakeSide();
+    }
+
+    public Trigger getCoralSensorPlace() {
+        return sensor.detectedPlacementSide();
+    }
+
     @Override
     public void periodic() {
         // Button box LEDs
@@ -199,6 +211,19 @@ public class Superstructure extends SubsystemBase {
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
         state = preset;
         return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
+    }
+
+    // Use sensors to automatically hold the note in the middle
+    public Command setPresetWithAutoCenter(SuperstructurePreset preset) {
+        DoubleSupplier beltSupplier = new DoubleSupplier() {
+            @Override
+            public double getAsDouble() {
+                if (getCoralSensorPlace().negate().getAsBoolean()) return 1;
+                if (getCoralSensorIntake().negate().getAsBoolean()) return -1;
+                return 0;
+            }
+        };
+        return setPresetWithBeltOverride(preset, beltSupplier, () -> -beltSupplier.getAsDouble());
     }
 
     public Command setPreset(SuperstructurePreset preset) {
@@ -255,5 +280,7 @@ public class Superstructure extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("State", getState()::name, null);
+        builder.addBooleanProperty("Sensor intake", getCoralSensorIntake()::getAsBoolean, null);
+        builder.addBooleanProperty("Sensor place", getCoralSensorPlace()::getAsBoolean, null);
     }
 }

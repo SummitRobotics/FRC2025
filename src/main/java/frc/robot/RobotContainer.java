@@ -24,7 +24,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -172,16 +171,16 @@ public class RobotContainer {
         scrubChooser.addOption("High", SuperstructurePreset.L3_SCRUB);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
         lChooser.onChange((SuperstructurePreset l) -> {
-            driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
+            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
         });
         hexSideChooser.onChange((HexSide hexSide) -> {
-            driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected(), scrubChooser.getSelected())));
+            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected(), scrubChooser.getSelected())));
         });
         leftRightChooser.onChange((Side leftRight) -> {
-            driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight, scrubChooser.getSelected())));
+            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight, scrubChooser.getSelected())));
         });
         scrubChooser.onChange((SuperstructurePreset scrub) -> {
-            driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrub)));
+            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrub)));
         });
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
@@ -247,7 +246,7 @@ public class RobotContainer {
         driverController.start().and(driverController.x()).whileTrue(superstructure.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        driverController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverController.b().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // Superstructure MOs
         buttonBox.getTrigger(Button.MO_PRESET).whileTrue(superstructure.setManual(
@@ -264,16 +263,27 @@ public class RobotContainer {
             if (preset.button != null) buttonBox.getTrigger(preset.button).onTrue(
                 new SequentialCommandGroup(
                     scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations).until(scrubber::safe),
-                    superstructure.setPresetWithBeltOverride(
-                        preset,
-                        () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
-                        () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
-            )));
+                    // preset == SuperstructurePreset.RECEIVE
+                    // ? superstructure.setPresetWithBeltOverride(
+                        // preset,
+                        // () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
+                        // () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
+                    // )
+                    superstructure.setPresetWithAutoCenter(preset)
+            ));
         }
+        // Alternative receive entry by the driver
+        driverController.rightBumper().onTrue(
+            new SequentialCommandGroup(
+                scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations).until(scrubber::safe),
+                superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
+            )
+        );
+
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        driverController.a().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
+        driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
     }
 
     public Command getAutonomousCommand() {
@@ -297,9 +307,8 @@ public class RobotContainer {
             case FIVE -> left ? FIVE_LEFT : FIVE_RIGHT;
             case SIX -> left ? SIX_LEFT : SIX_RIGHT;
         };
-        if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
-            ghostPose = Functions.mirrorPoseToRed(ghostPose);
-        }
+        // Flips to the other side of the field if it determines we need it
+        ghostPose = Functions.mirrorPoseToRed(ghostPose);
         field.getObject("PathTarget").setPose(ghostPose);
 
         // Get the active path from the network tables and set it onto the field object

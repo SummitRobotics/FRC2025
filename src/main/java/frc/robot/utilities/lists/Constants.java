@@ -45,6 +45,7 @@ public class Constants {
             BELT_LEFT_ID = 11,
             BELT_RIGHT_ID = 10,
             PIVOT_ID = 28,
+            SENSOR_ID = 50,
             CANCODER_ID = 5;
         public static final double
             MAX_ROTATIONS = 0.3,
