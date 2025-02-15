@@ -34,7 +34,6 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AutoPickup;
 import frc.robot.commands.AutoPlace;
 import frc.robot.commands.AutoPickup.AutoSegment;
@@ -176,7 +175,7 @@ public class RobotContainer {
         lChooser.addOption("L2", SuperstructurePreset.L2);
         lChooser.addOption("L3", SuperstructurePreset.L3);
         lChooser.addOption("L4", SuperstructurePreset.L4);
-        lChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE); // TODO - using MANUAL_OVERRIDE for the flag is sloppy
+        lChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
         hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
         hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
         hexSideChooser.addOption("3", AutoPlace.HexSide.THREE);
@@ -265,7 +264,7 @@ public class RobotContainer {
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
         // SmartDashboard.putData("Auto Mode", autoChooser);
-        SmartDashboard.putData("Superstructure", superstructure);
+        // SmartDashboard.putData("Superstructure", superstructure);
         // SmartDashboard.putData("One Left", selectOneLeft);
         // SmartDashboard.putData("One Right", selectOneRight);
         // SmartDashboard.putData("Two Left", selectTwoLeft);
@@ -318,10 +317,10 @@ public class RobotContainer {
         // driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
         // driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         // driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-        driverController.back().and(driverController.y()).whileTrue(superstructure.sysIdDynamic(Direction.kForward));
-        driverController.back().and(driverController.x()).whileTrue(superstructure.sysIdDynamic(Direction.kReverse));
-        driverController.start().and(driverController.y()).whileTrue(superstructure.sysIdQuasistatic(Direction.kForward));
-        driverController.start().and(driverController.x()).whileTrue(superstructure.sysIdQuasistatic(Direction.kReverse));
+        // driverController.back().and(driverController.y()).whileTrue(superstructure.sysIdDynamic(Direction.kForward));
+        // driverController.back().and(driverController.x()).whileTrue(superstructure.sysIdDynamic(Direction.kReverse));
+        // driverController.start().and(driverController.y()).whileTrue(superstructure.sysIdQuasistatic(Direction.kForward));
+        // driverController.start().and(driverController.x()).whileTrue(superstructure.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
         driverController.b().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -362,6 +361,7 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
         driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
+        driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, AutoPickup.getCoralSide(drivetrain.getState().Pose)));
     }
 
     public Command getAutonomousCommand() {

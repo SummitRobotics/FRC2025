@@ -274,7 +274,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-tags");
         // if (mt2 == null) System.out.println("Tag results were null");
         if (mt2 != null && mt2.tagCount > 0 && getPigeon2().getAngularVelocityZDevice().getValueAsDouble() <= 720) {
-          setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7, 1.4));
+          setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7, 9999999));
           addVisionMeasurement(
               mt2.pose,
               Utils.fpgaToCurrentTime(mt2.timestampSeconds));

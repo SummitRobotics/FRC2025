@@ -4,8 +4,10 @@ import com.ctre.phoenix6.Utils;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -30,6 +32,14 @@ public class AutoPickup extends SequentialCommandGroup {
         DO_FIRST,
         DO_SECOND,
         DO_THIRD
+    }
+
+    public static CoralStationSide getCoralSide(Pose2d pose) {
+        if (!DriverStation.getAlliance().isPresent() || DriverStation.getAlliance().get() == Alliance.Blue) {
+            return pose.getY() > 4 ? CoralStationSide.LEFT : CoralStationSide.RIGHT;
+        } else {
+            return pose.getY() < 4 ? CoralStationSide.LEFT : CoralStationSide.RIGHT;
+        }
     }
 
     // Create the constraints to use while pathfinding

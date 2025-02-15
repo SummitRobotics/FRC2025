@@ -95,6 +95,7 @@ public class AutoPlace extends SequentialCommandGroup {
 
         // Command move = AutoBuilder.pathfindThenFollowPath(path, constraints);
         Command move = new SequentialCommandGroup(
+            // new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.SwerveDriveBrake())).repeatedly().withDeadline(new WaitCommand(0.3)),
             new ParallelDeadlineGroup(
                 AutoBuilder.pathfindToPoseFlipped(path.getStartingHolonomicPose().get(), constraints),
                 new ConditionalCommand(superstructure.setPreset(node.l), new InstantCommand(), () -> node.l == SuperstructurePreset.L2)
@@ -111,20 +112,15 @@ public class AutoPlace extends SequentialCommandGroup {
             // superstructure.setPreset(node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE ? node.scrub : SuperstructurePreset.STOW_UPPER))
         // )));
         SequentialCommandGroup place = new SequentialCommandGroup(
-            superstructure.setPreset(node.l).until(() -> superstructure.atSetpoint()),
-            new WaitCommand(/*node.l == SuperstructurePreset.L4 ? 1 :*/ 0.5),
+            superstructure.setPreset(node.l).until(superstructure::atSetpoint).withDeadline(new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5)),
             new ParallelDeadlineGroup(
-                new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
+                node.l == SuperstructurePreset.L1 ? new WaitCommand(2) : new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
                 superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
             )
         );
         SequentialCommandGroup scrub = new SequentialCommandGroup(
-            superstructure.setPreset(node.scrub).until(() -> superstructure.atSetpoint()),
-            new WaitCommand(0.5),
-            new ParallelDeadlineGroup(
-                new WaitCommand(0.5),
-                scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS)
-            )
+            superstructure.setPreset(node.scrub).until(superstructure::atSetpoint).withDeadline(new WaitCommand(0.5)),    
+            scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS).withDeadline(new WaitCommand(0.5))
         );
 
         if (!Utils.isSimulation()) {
@@ -135,7 +131,7 @@ public class AutoPlace extends SequentialCommandGroup {
             if (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) {
                 addCommands(scrub);
             }
-            addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER));
+            addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint).withDeadline(new WaitCommand(0.5)));
         } else {
             addCommands(AutoBuilder.pathfindThenFollowPath(path, constraints));
         }
