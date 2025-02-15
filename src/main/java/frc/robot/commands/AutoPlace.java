@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import com.ctre.phoenix6.Utils;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -68,6 +69,10 @@ public class AutoPlace extends SequentialCommandGroup {
             this.hexSide = hexSide;
             this.scrub = scrub;
         }
+
+        public String toString() {
+            return "Hex: " + hexSide.name + ", Side: " + side.name + ", L: " + l.name;
+        }
     }
 
     // Create the constraints to use while pathfinding
@@ -122,13 +127,17 @@ public class AutoPlace extends SequentialCommandGroup {
             )
         );
 
-        addCommands(new ParallelDeadlineGroup(move, scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations)));
-        if (node.l != SuperstructurePreset.MANUAL_OVERRIDE) {
-            addCommands(place);
+        if (!Utils.isSimulation()) {
+            addCommands(new ParallelDeadlineGroup(move, scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations)));
+            if (node.l != SuperstructurePreset.MANUAL_OVERRIDE) {
+                addCommands(place);
+            }
+            if (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) {
+                addCommands(scrub);
+            }
+            addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER));
+        } else {
+            addCommands(AutoBuilder.pathfindThenFollowPath(path, constraints));
         }
-        if (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) {
-            addCommands(scrub);
-        }
-        addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER));
     }
 }

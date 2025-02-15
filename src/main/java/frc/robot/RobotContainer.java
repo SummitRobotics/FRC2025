@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.epilogue.Logged;
@@ -23,16 +22,23 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.AutoPickup;
 import frc.robot.commands.AutoPlace;
+import frc.robot.commands.AutoPickup.AutoSegment;
+import frc.robot.commands.AutoPickup.CoralStationSide;
 import frc.robot.commands.AutoPlace.HexSide;
 import frc.robot.commands.AutoPlace.Node;
 import frc.robot.commands.AutoPlace.Side;
@@ -74,11 +80,24 @@ public class RobotContainer {
     public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
     
     // Path follower
-    private final SendableChooser<Command> autoChooser;
+    // private final SendableChooser<Command> autoChooser;
     private final SendableChooser<SuperstructurePreset> lChooser;
     private final SendableChooser<HexSide> hexSideChooser;
     private final SendableChooser<Side> leftRightChooser;
     private final SendableChooser<SuperstructurePreset> scrubChooser;
+
+    // Auto
+    private final SendableChooser<SuperstructurePreset> autoLChoice;
+    private final SendableChooser<HexSide> autoHexSideChoice;
+    private final SendableChooser<Side> autoReefChoice;
+    private final SendableChooser<CoralStationSide> autoCoralStationChoice;
+    private final SendableChooser<AutoSegment> autoSegmentChoice;
+    private Node autoNodeOne = new Node(SuperstructurePreset.L2, HexSide.ONE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
+    private CoralStationSide autoStationOne = CoralStationSide.LEFT;
+    private Node autoNodeTwo = new Node(SuperstructurePreset.L2, HexSide.ONE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
+    private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
+    private Node autoNodeThree = new Node(SuperstructurePreset.L2, HexSide.ONE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
+    private CoralStationSide autoStationThree = CoralStationSide.LEFT;
 
     // Button-based node chooser
     // private Side leftRight = Side.LEFT;
@@ -148,16 +167,16 @@ public class RobotContainer {
             System.out.println("Controller Type: Xbox");            
         }
 
-        autoChooser = AutoBuilder.buildAutoChooser("Tests");
+        // autoChooser = AutoBuilder.buildAutoChooser("Tests");
         lChooser = new SendableChooser<SuperstructurePreset>();
         hexSideChooser = new SendableChooser<HexSide>();
         leftRightChooser = new SendableChooser<Side>();
         scrubChooser = new SendableChooser<SuperstructurePreset>();
-        lChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE); // TODO - using MANUAL_OVERRIDE for the flag is sloppy
         lChooser.addOption("L1", SuperstructurePreset.L1);
         lChooser.addOption("L2", SuperstructurePreset.L2);
         lChooser.addOption("L3", SuperstructurePreset.L3);
         lChooser.addOption("L4", SuperstructurePreset.L4);
+        lChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE); // TODO - using MANUAL_OVERRIDE for the flag is sloppy
         hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
         hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
         hexSideChooser.addOption("3", AutoPlace.HexSide.THREE);
@@ -182,11 +201,70 @@ public class RobotContainer {
         scrubChooser.onChange((SuperstructurePreset scrub) -> {
             driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrub)));
         });
+        
+        // Combinatoric auto-chooser thing
+        autoLChoice = new SendableChooser<SuperstructurePreset>();
+        autoHexSideChoice = new SendableChooser<HexSide>();
+        autoReefChoice = new SendableChooser<Side>();
+        autoCoralStationChoice = new SendableChooser<CoralStationSide>();
+        autoSegmentChoice = new SendableChooser<AutoSegment>();
+        // autoLChoice.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE); // TODO - using MANUAL_OVERRIDE for the flag is sloppy
+        autoLChoice.addOption("L1", SuperstructurePreset.L1);
+        autoLChoice.addOption("L2", SuperstructurePreset.L2);
+        autoLChoice.addOption("L3", SuperstructurePreset.L3);
+        autoLChoice.addOption("L4", SuperstructurePreset.L4);
+        autoHexSideChoice.setDefaultOption("1", AutoPlace.HexSide.ONE);
+        autoHexSideChoice.addOption("2", AutoPlace.HexSide.TWO);
+        autoHexSideChoice.addOption("3", AutoPlace.HexSide.THREE);
+        autoHexSideChoice.addOption("4", AutoPlace.HexSide.FOUR);
+        autoHexSideChoice.addOption("5", AutoPlace.HexSide.FIVE);
+        autoHexSideChoice.addOption("6", AutoPlace.HexSide.SIX);
+        autoReefChoice.setDefaultOption("A", AutoPlace.Side.LEFT);
+        autoReefChoice.addOption("B", AutoPlace.Side.RIGHT);
+        autoCoralStationChoice.setDefaultOption("Left", CoralStationSide.LEFT);
+        autoCoralStationChoice.addOption("Right", CoralStationSide.RIGHT);
+        autoSegmentChoice.setDefaultOption("Do First", AutoSegment.DO_FIRST);
+        autoSegmentChoice.addOption("Do Second", AutoSegment.DO_SECOND);
+        autoSegmentChoice.addOption("Do Third", AutoSegment.DO_THIRD);
+        WrapperCommand updateAutoChoice = new InstantCommand(() -> {
+            Node result = new Node(autoLChoice.getSelected(), autoHexSideChoice.getSelected(), autoReefChoice.getSelected(), SuperstructurePreset.MANUAL_OVERRIDE);
+            switch (autoSegmentChoice.getSelected()) {
+                case DO_FIRST: {
+                    autoNodeOne = result;
+                    autoStationOne = autoCoralStationChoice.getSelected();
+                    break;
+                }
+                case DO_SECOND: {
+                    autoNodeTwo = result;
+                    autoStationTwo = autoCoralStationChoice.getSelected();
+                    break;
+                }
+                case DO_THIRD: {
+                    autoNodeThree = result;
+                    autoStationThree = autoCoralStationChoice.getSelected();
+                    break;
+                }
+            }
+        }).ignoringDisable(true);
+        SmartDashboard.putData("Auto Status", new Sendable() {
+            @Override
+            public void initSendable(SendableBuilder builder) {
+                builder.addStringProperty("Segment 1", () -> autoNodeOne.toString() + ", Coral Station: " + autoStationOne.pathName, null);
+                builder.addStringProperty("Segment 2", () -> autoNodeTwo.toString() + ", Coral Station: " + autoStationTwo.pathName, null);
+                builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
+            }
+        });
+        SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
+        SmartDashboard.putData("Auto L Chooser", autoLChoice);
+        SmartDashboard.putData("Auto Hex Chooser", autoHexSideChoice);
+        SmartDashboard.putData("Auto Left-Right Chooser", autoReefChoice);
+        SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
+        SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
-        SmartDashboard.putData("Auto Mode", autoChooser);
+        // SmartDashboard.putData("Auto Mode", autoChooser);
         SmartDashboard.putData("Superstructure", superstructure);
         // SmartDashboard.putData("One Left", selectOneLeft);
         // SmartDashboard.putData("One Right", selectOneRight);
@@ -287,7 +365,14 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+        return new SequentialCommandGroup(
+            new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
+            new AutoPickup(drivetrain, superstructure, scrubber, autoStationOne),
+            new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
+            new AutoPickup(drivetrain, superstructure, scrubber, autoStationTwo),
+            new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
+            new AutoPickup(drivetrain, superstructure, scrubber, autoStationThree)
+        );
     }
 
     public void simulationPeriodic() {
