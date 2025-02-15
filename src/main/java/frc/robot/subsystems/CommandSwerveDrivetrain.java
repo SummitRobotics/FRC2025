@@ -216,6 +216,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         configureAutoBuilder();
+
+        // Seed orientation for MT2
+        if (!DriverStation.getAlliance().isPresent() || DriverStation.getAlliance().get() == Alliance.Blue) {
+            getPigeon2().setYaw(180);
+        } else {
+            getPigeon2().setYaw(0);
+        }
     }
 
     /**

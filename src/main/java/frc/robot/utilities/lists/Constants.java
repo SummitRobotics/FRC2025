@@ -6,10 +6,16 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public class Constants {
-    // TODO - set all of these
+
     public static final String
         RIO_BUS_NAME = "rio";
         // CANIVORE_BUS_NAME = "canivore";
+
+    public static class Physical {
+        public static final double
+            TOF_OFFSET_METERS = 0;
+    }
+
     public static class OI {
         public static int
             DRIVER_XBOX = 0,

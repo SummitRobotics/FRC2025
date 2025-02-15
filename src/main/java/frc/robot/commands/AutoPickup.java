@@ -1,6 +1,9 @@
 package frc.robot.commands;
 
+import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -8,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -65,5 +69,12 @@ public class AutoPickup extends SequentialCommandGroup {
         } else {
             addCommands(AutoBuilder.pathfindThenFollowPath(path, constraints));
         }
+    }
+
+    // TODO - finish / tune
+    public static Command timeOfFlightAlign(CommandSwerveDrivetrain drivetrain, DoubleSupplier leftToF, DoubleSupplier rightToF) {
+        SwerveRequest.RobotCentric request = new SwerveRequest.RobotCentric()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+        return drivetrain.applyRequest(() -> request.withVelocityX(0).withRotationalRate(0));
     }
 }
