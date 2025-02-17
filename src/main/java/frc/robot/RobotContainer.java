@@ -146,9 +146,6 @@ public class RobotContainer {
         SIX_LEFT = new Pose2d(3.973, 5.231, Rotation2d.fromDegrees(300)),
         SIX_RIGHT = new Pose2d(3.697, 5.061, Rotation2d.fromDegrees(300));
 
-    // For testing
-    private final AlignRequestToF alignRequest = new AlignRequestToF(superstructure.getToFLeft(), superstructure.getToFRight());
-
     public RobotContainer() {
         // Check if PS5 controllers should be used
         boolean usePS5Controllers = Boolean.parseBoolean(System.getenv("USE_PS5_CONTROLLERS"));
@@ -339,8 +336,8 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
         driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
-        driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, AutoPickup.getCoralSide(drivetrain.getState().Pose)));
-        driverController.x().whileTrue(drivetrain.applyRequest(() -> alignRequest));
+        driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, () -> AutoPickup.getCoralSide(drivetrain.getState().Pose)));
+        driverController.x().whileTrue(new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight()));
         // Put upward after receive
         new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
             .and(superstructure.getCoralSensorIntake())
@@ -356,11 +353,11 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return new SequentialCommandGroup(
             new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
-            new AutoPickup(drivetrain, superstructure, scrubber, autoStationOne),
+            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
             new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
-            new AutoPickup(drivetrain, superstructure, scrubber, autoStationTwo),
+            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
             new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
-            new AutoPickup(drivetrain, superstructure, scrubber, autoStationThree)
+            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree)
         );
     }
 

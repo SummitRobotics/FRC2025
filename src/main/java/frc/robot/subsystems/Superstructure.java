@@ -177,13 +177,17 @@ public class Superstructure extends SubsystemBase {
     }
 
     public DoubleSupplier getToFLeft() {
-        SensorData data = tofSensor.getSensorData(Constants.Devices.TOF_ID_LEFT);
-        return () -> data != null && data.status == Status.MEASURE_VALID ? data.distance : -1;
+        return () -> {
+            SensorData data = tofSensor.getSensorData(Constants.Devices.TOF_ID_LEFT);
+            return data != null && data.status == Status.MEASURE_VALID ? data.distance : -1;
+        };
     }
 
     public DoubleSupplier getToFRight() {
-        SensorData data = tofSensor.getSensorData(Constants.Devices.TOF_ID_RIGHT);
-        return () -> data != null && data.status == Status.MEASURE_VALID ? data.distance : -1;
+        return () -> {
+            SensorData data = tofSensor.getSensorData(Constants.Devices.TOF_ID_RIGHT);
+            return data != null && data.status == Status.MEASURE_VALID ? data.distance : -1;
+        };
     }
 
     @Override

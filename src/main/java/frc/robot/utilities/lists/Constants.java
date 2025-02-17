@@ -13,7 +13,7 @@ public class Constants {
 
     public static class Physical {
         public static final double
-            TOF_OFFSET_METERS = 0;
+            TOF_OFFSET_METERS = 0.109;
     }
 
     public static class OI {

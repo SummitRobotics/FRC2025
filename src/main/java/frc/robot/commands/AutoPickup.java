@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.Utils;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
@@ -8,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -18,7 +21,7 @@ import frc.robot.utilities.lists.Constants;
 
 public class AutoPickup extends SequentialCommandGroup {
 
-    public enum CoralStationSide {
+    public static enum CoralStationSide {
         LEFT("LeftStation"),
         RIGHT("RightStation");
         public String pathName;
@@ -28,7 +31,7 @@ public class AutoPickup extends SequentialCommandGroup {
     }
 
     // For auto selector (maybe should be someplace else)
-    public enum AutoSegment {
+    public static enum AutoSegment {
         DO_FIRST,
         DO_SECOND,
         DO_THIRD
@@ -43,35 +46,41 @@ public class AutoPickup extends SequentialCommandGroup {
         }
     }
 
-    // Create the constraints to use while pathfinding
-    private PathConstraints constraints = new PathConstraints(
-            3.0 / 2, 4.0 / 2,
-            Units.degreesToRadians(270 / 2), Units.degreesToRadians(360 / 2));
 
-    private AlignRequestToF alignRequest;
-
-    public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, CoralStationSide side) {
-        alignRequest = new AlignRequestToF(superstructure.getToFLeft(), superstructure.getToFRight());
-        PathPlannerPath path;
+    public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side) {
+        // Create the constraints to use while pathfinding
+        PathConstraints constraints = new PathConstraints(
+                3.0 / 2, 4.0 / 2,
+                Units.degreesToRadians(270 / 2), Units.degreesToRadians(360 / 2));
+        PathPlannerPath leftPath;
+        PathPlannerPath rightPath;
         try {
-            path = PathPlannerPath.fromPathFile(side.pathName);
+            leftPath = PathPlannerPath.fromPathFile(CoralStationSide.LEFT.pathName);
+            rightPath = PathPlannerPath.fromPathFile(CoralStationSide.RIGHT.pathName);
         } catch (Exception e) {
             e.printStackTrace();
             throw (new RuntimeException("Loaded a path that does not exist."));
         }
         if (!Utils.isSimulation()) {
             addCommands(
+                new InstantCommand(() -> {
+
+                }),
                 new ParallelCommandGroup(
+                    // new InstantCommand(() -> {
+                        // System.out.println("Side name " + side.get().pathName);
+                        // System.out.println("Path " + path.name);
+                    // }),
                     scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
                     superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE),
                     new SequentialCommandGroup(
-                        AutoBuilder.pathfindThenFollowPath(path, constraints),
-                        drivetrain.applyRequest(() -> alignRequest).until(() -> alignRequest.done())
+                        AutoBuilder.pathfindThenFollowPath(side.get() == CoralStationSide.LEFT ? leftPath : rightPath, constraints),
+                        new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight())
                     )
                 ).until(superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()))
             );
         } else {
-            addCommands(AutoBuilder.pathfindThenFollowPath(path, constraints));
+            addCommands(AutoBuilder.pathfindThenFollowPath(side.get() == CoralStationSide.LEFT ? leftPath : rightPath, constraints));
         }
     }
 }
