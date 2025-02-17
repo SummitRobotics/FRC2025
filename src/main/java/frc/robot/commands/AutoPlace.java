@@ -71,7 +71,7 @@ public class AutoPlace extends SequentialCommandGroup {
         }
 
         public String toString() {
-            return "Hex: " + hexSide.name + ", Side: " + side.name + ", L: " + l.name;
+            return "Hex: " + hexSide.name + ", Side: " + side.name + ", L: " + l.description;
         }
     }
 

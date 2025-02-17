@@ -18,6 +18,6 @@ public class CandiCoralSensor {
     }
 
     public Trigger detectedPlacementSide() {
-        return new Trigger(() -> candi.getS2State().getValueAsDouble() == 2);
+        return new Trigger(() -> candi.getS2State().getValueAsDouble() == 2.0);
     }
 }

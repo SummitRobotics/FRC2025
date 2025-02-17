@@ -20,6 +20,7 @@ import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -51,14 +52,14 @@ public class Superstructure extends SubsystemBase {
         public double pivotRotations;
         public double leftBelt;
         public double rightBelt;
-        public String name;
+        public String description;
         public Button button;
-        SuperstructurePreset(double elevatorRotations, double pivotRotations, double leftBelt, double rightBelt, String name, Button button) {
+        SuperstructurePreset(double elevatorRotations, double pivotRotations, double leftBelt, double rightBelt, String description, Button button) {
             this.elevatorRotations = elevatorRotations;
             this.pivotRotations = pivotRotations;
             this.leftBelt = leftBelt;
             this.rightBelt = rightBelt;
-            this.name = name;
+            this.description = description;
             this.button = button;
         }
 
@@ -76,9 +77,10 @@ public class Superstructure extends SubsystemBase {
     private SuperstructurePreset state = SuperstructurePreset.STOW_LOWER;
 
     // Elevator
-    @Logged(name = "Elevator")
+    @Logged(name = "ElevatorA")
     private final TalonFX
         elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A);
+    @Logged(name = "ElevatorB")
     private final TalonFX
         elevatorB = new TalonFX(Constants.Elevator.ELEVATOR_ID_B);
     StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
@@ -122,8 +124,8 @@ public class Superstructure extends SubsystemBase {
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Elevator.MAX_ROTATIONS;
         config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
-        // config.CurrentLimits.StatorCurrentLimit = 60;
-        // config.CurrentLimits.SupplyCurrentLimit = 60;
+        config.CurrentLimits.StatorCurrentLimit = 90;
+        config.CurrentLimits.StatorCurrentLimitEnable = true;
         elevatorA.getConfigurator().apply(config);
         elevatorB.getConfigurator().apply(config);
         elevatorA.setPosition(0);
@@ -156,6 +158,12 @@ public class Superstructure extends SubsystemBase {
         setPreset(SuperstructurePreset.STOW_LOWER);
 
         this.buttonBox = buttonBox;
+
+        // Questionable non-feedback re-homing solution (assume it's fallen to the bottom after 2 seconds of being commanded down)
+        new Trigger(() -> state.elevatorRotations < 0.2).debounce(2).onTrue(new InstantCommand(() -> {
+            elevatorA.setPosition(0);
+            elevatorB.setPosition(0);
+        }));
     }
 
     public Trigger getCoralSensorIntake() {
@@ -221,8 +229,10 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
-        state = preset;
-        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);
+        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false).alongWith(new InstantCommand(() -> {
+            state = preset;
+            // System.out.println("State:" + getState().description);
+        }).repeatedly());
     }
 
     // Use sensors to automatically hold the note in the middle
@@ -230,8 +240,8 @@ public class Superstructure extends SubsystemBase {
         DoubleSupplier beltSupplier = new DoubleSupplier() {
             @Override
             public double getAsDouble() {
-                if (getCoralSensorPlace().negate().getAsBoolean()) return 1;
-                if (getCoralSensorIntake().negate().getAsBoolean()) return -1;
+                if (getCoralSensorPlace().negate().getAsBoolean()) return 0.7;
+                if (getCoralSensorIntake().negate().getAsBoolean()) return -0.7;
                 return 0;
             }
         };

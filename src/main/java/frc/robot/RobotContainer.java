@@ -7,10 +7,6 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.commands.FollowPathCommand;
@@ -18,9 +14,6 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -31,9 +24,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoPickup;
 import frc.robot.commands.AutoPlace;
 import frc.robot.commands.AutoPickup.AutoSegment;
@@ -61,7 +56,7 @@ public class RobotContainer {
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     // private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+    // private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -78,7 +73,7 @@ public class RobotContainer {
     public final Superstructure superstructure = new Superstructure(buttonBox);
     public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
     
-    // Path follower
+    // Auto-align chooser
     // private final SendableChooser<Command> autoChooser;
     private final SendableChooser<SuperstructurePreset> lChooser;
     private final SendableChooser<HexSide> hexSideChooser;
@@ -86,9 +81,6 @@ public class RobotContainer {
     private final SendableChooser<SuperstructurePreset> scrubChooser;
 
     // Auto
-    private final SendableChooser<SuperstructurePreset> autoLChoice;
-    private final SendableChooser<HexSide> autoHexSideChoice;
-    private final SendableChooser<Side> autoReefChoice;
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
     private final SendableChooser<AutoSegment> autoSegmentChoice;
     private Node autoNodeOne = new Node(SuperstructurePreset.L2, HexSide.ONE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
@@ -202,31 +194,15 @@ public class RobotContainer {
         });
         
         // Combinatoric auto-chooser thing
-        autoLChoice = new SendableChooser<SuperstructurePreset>();
-        autoHexSideChoice = new SendableChooser<HexSide>();
-        autoReefChoice = new SendableChooser<Side>();
         autoCoralStationChoice = new SendableChooser<CoralStationSide>();
         autoSegmentChoice = new SendableChooser<AutoSegment>();
-        // autoLChoice.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE); // TODO - using MANUAL_OVERRIDE for the flag is sloppy
-        autoLChoice.addOption("L1", SuperstructurePreset.L1);
-        autoLChoice.addOption("L2", SuperstructurePreset.L2);
-        autoLChoice.addOption("L3", SuperstructurePreset.L3);
-        autoLChoice.addOption("L4", SuperstructurePreset.L4);
-        autoHexSideChoice.setDefaultOption("1", AutoPlace.HexSide.ONE);
-        autoHexSideChoice.addOption("2", AutoPlace.HexSide.TWO);
-        autoHexSideChoice.addOption("3", AutoPlace.HexSide.THREE);
-        autoHexSideChoice.addOption("4", AutoPlace.HexSide.FOUR);
-        autoHexSideChoice.addOption("5", AutoPlace.HexSide.FIVE);
-        autoHexSideChoice.addOption("6", AutoPlace.HexSide.SIX);
-        autoReefChoice.setDefaultOption("A", AutoPlace.Side.LEFT);
-        autoReefChoice.addOption("B", AutoPlace.Side.RIGHT);
         autoCoralStationChoice.setDefaultOption("Left", CoralStationSide.LEFT);
         autoCoralStationChoice.addOption("Right", CoralStationSide.RIGHT);
         autoSegmentChoice.setDefaultOption("Do First", AutoSegment.DO_FIRST);
         autoSegmentChoice.addOption("Do Second", AutoSegment.DO_SECOND);
         autoSegmentChoice.addOption("Do Third", AutoSegment.DO_THIRD);
         WrapperCommand updateAutoChoice = new InstantCommand(() -> {
-            Node result = new Node(autoLChoice.getSelected(), autoHexSideChoice.getSelected(), autoReefChoice.getSelected(), SuperstructurePreset.MANUAL_OVERRIDE);
+            Node result = new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), SuperstructurePreset.MANUAL_OVERRIDE);
             switch (autoSegmentChoice.getSelected()) {
                 case DO_FIRST: {
                     autoNodeOne = result;
@@ -254,9 +230,6 @@ public class RobotContainer {
             }
         });
         SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
-        SmartDashboard.putData("Auto L Chooser", autoLChoice);
-        SmartDashboard.putData("Auto Hex Chooser", autoHexSideChoice);
-        SmartDashboard.putData("Auto Left-Right Chooser", autoReefChoice);
         SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
         SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
         SmartDashboard.putData("L Chooser", lChooser);
@@ -307,9 +280,9 @@ public class RobotContainer {
         );
 
         // driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        driverController.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))
-        ));
+        // driverController.b().whileTrue(drivetrain.applyRequest(() ->
+            // point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))
+        // ));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -340,13 +313,12 @@ public class RobotContainer {
             if (preset.button != null) buttonBox.getTrigger(preset.button).onTrue(
                 new SequentialCommandGroup(
                     scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations).until(scrubber::safe),
-                    // preset == SuperstructurePreset.RECEIVE
-                    // ? superstructure.setPresetWithBeltOverride(
-                        // preset,
-                        // () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
-                        // () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
-                    // )
-                    superstructure.setPresetWithAutoCenter(preset)
+                    superstructure.setPresetWithBeltOverride(
+                        preset,
+                        () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
+                        () -> (gunnerController.leftBumper().getAsBoolean() ? 1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? -1 : 0)
+                    )
+                    // superstructure.setPresetWithAutoCenter(preset)
             ));
         }
         // Alternative receive entry by the driver
@@ -362,6 +334,16 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
         driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
         driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, AutoPickup.getCoralSide(drivetrain.getState().Pose)));
+        // Put upward after receive
+        new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
+            .and(superstructure.getCoralSensorIntake())
+            .and(superstructure.getCoralSensorPlace())
+            .onTrue(
+                new SequentialCommandGroup(
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withDeadline(new WaitCommand(0.5)),
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
+                )
+            );
     }
 
     public Command getAutonomousCommand() {
@@ -397,27 +379,28 @@ public class RobotContainer {
         field.getObject("PathTarget").setPose(ghostPose);
 
         // Get the active path from the network tables and set it onto the field object
-        NetworkTableInstance inst = NetworkTableInstance.getDefault();
-        NetworkTable table = inst.getTable("/PathPlanner");
-        NetworkTableEntry activePathEntry = table.getEntry("activePath");
+        // Disabled for CPU / network bandwidth reasons
+        // NetworkTableInstance inst = NetworkTableInstance.getDefault();
+        // NetworkTable table = inst.getTable("/PathPlanner");
+        // NetworkTableEntry activePathEntry = table.getEntry("activePath");
 
-        byte[] activePathBytes = activePathEntry.getRaw(new byte[0]);
+        // byte[] activePathBytes = activePathEntry.getRaw(new byte[0]);
 
         // Deserialize the raw bytes into Pose2d objects
-        List<Pose2d> activePath = new ArrayList<>();
-        ByteBuffer buffer = ByteBuffer.wrap(activePathBytes).order(ByteOrder.LITTLE_ENDIAN);
-        while (buffer.remaining() >= 24) {
-            double x = buffer.getDouble();
-            double y = buffer.getDouble();
-            double theta = buffer.getDouble();
-            activePath.add(new Pose2d(new Translation2d(x, y), new Rotation2d(theta)));
-        }
+        // List<Pose2d> activePath = new ArrayList<>();
+        // ByteBuffer buffer = ByteBuffer.wrap(activePathBytes).order(ByteOrder.LITTLE_ENDIAN);
+        // while (buffer.remaining() >= 24) {
+            // double x = buffer.getDouble();
+            // double y = buffer.getDouble();
+            // double theta = buffer.getDouble();
+            // activePath.add(new Pose2d(new Translation2d(x, y), new Rotation2d(theta)));
+        // }
 
-        if (!activePath.isEmpty()) {
+        // if (!activePath.isEmpty()) {
             // Trajectory trajectory = TrajectoryGenerator.generateTrajectory(activePath, new TrajectoryConfig(2.0, 2.0));
             // field.getObject("PathTrajectory").setTrajectory(trajectory);
-            field.getObject("PathTrajectory").setPoses(activePath);
-        }
+            // field.getObject("PathTrajectory").setPoses(activePath);
+        // }
 
         // TODO: Check if the FMSInfo is being published via the FMS in real matches
         updateFMSInfo();
