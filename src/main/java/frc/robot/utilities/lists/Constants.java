@@ -18,6 +18,11 @@ public class Constants {
             GUNNER_PS5 = GUNNER_XBOX,
             BUTTON_BOX = 2;
     }
+    public static class Devices {
+        public static final int
+            TOF_ID_LEFT = 41,
+            TOF_ID_RIGHT = 40;
+    }
     public static class Elevator {
         public static final int
             ELEVATOR_ID_A = 13,
@@ -45,7 +50,7 @@ public class Constants {
             BELT_LEFT_ID = 11,
             BELT_RIGHT_ID = 10,
             PIVOT_ID = 28,
-            SENSOR_ID = 50,
+            CORAL_SENSOR_ID = 50,
             CANCODER_ID = 5;
         public static final double
             MAX_ROTATIONS = 0.3,

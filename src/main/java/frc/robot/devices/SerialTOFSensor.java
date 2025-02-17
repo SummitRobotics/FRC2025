@@ -217,7 +217,7 @@ public class SerialTOFSensor {
         sensorDataMap.put(id, sensorData);
 
         // Publish to SmartDashboard
-        publishToSmartDashboard(id, sensorData);
+        // publishToSmartDashboard(id, sensorData);
     }
 
     public SensorData getSensorData(int id) {

@@ -95,7 +95,7 @@ public class Superstructure extends SubsystemBase {
     private boolean elevatorSafe = false;
     // Sensor
     private CandiCoralSensor coralSensor = new CandiCoralSensor();
-    private SerialTOFSensor tofSensor = new SerialTOFSensor(921600);
+    private SerialTOFSensor tofSensor = new SerialTOFSensor(230400);
 
     // Button box LED compatability
     ButtonBox buttonBox;
@@ -164,6 +164,14 @@ public class Superstructure extends SubsystemBase {
 
     public Trigger getCoralSensorPlace() {
         return coralSensor.detectedPlacementSide();
+    }
+
+    public DoubleSupplier getToFLeft() {
+        return () -> tofSensor.getSensorData(Constants.Devices.TOF_ID_LEFT).distance;
+    }
+
+    public DoubleSupplier getToFRight() {
+        return () -> tofSensor.getSensorData(Constants.Devices.TOF_ID_RIGHT).distance;
     }
 
     @Override
@@ -284,7 +292,9 @@ public class Superstructure extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("State", getState()::name, null);
-        builder.addBooleanProperty("Sensor intake", getCoralSensorIntake()::getAsBoolean, null);
-        builder.addBooleanProperty("Sensor place", getCoralSensorPlace()::getAsBoolean, null);
+        builder.addBooleanProperty("Sensor Intake", getCoralSensorIntake()::getAsBoolean, null);
+        builder.addBooleanProperty("Sensor Place", getCoralSensorPlace()::getAsBoolean, null);
+        builder.addDoubleProperty("ToF Left", getToFLeft()::getAsDouble, null);
+        builder.addDoubleProperty("ToF Right", getToFRight()::getAsDouble, null);
     }
 }
