@@ -7,15 +7,23 @@ package frc.robot;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+
+  // TEMP: Set up LED
+  private final AddressableLED m_led;
+  private final AddressableLEDBuffer m_ledBuffer;
 
   public Robot() {
     // WPILib logging
@@ -24,6 +32,15 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     Epilogue.bind(this);
     m_robotContainer = new RobotContainer();
+
+    // TEMP: Set up LED
+    m_led = new AddressableLED(0);
+    m_ledBuffer = new AddressableLEDBuffer(13);
+    m_led.setLength(m_ledBuffer.getLength());
+    LEDPattern red = LEDPattern.solid(Color.kGreen);
+    red.applyTo(m_ledBuffer);
+    m_led.setData(m_ledBuffer);
+    m_led.start();
   }
 
   @Override
