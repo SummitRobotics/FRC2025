@@ -75,6 +75,18 @@
           "data": {
             "pathName": "1L"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftStation"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightStation"
+          }
         }
       ]
     }

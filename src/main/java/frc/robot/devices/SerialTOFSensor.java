@@ -2,7 +2,6 @@ package frc.robot.devices;
 
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +20,12 @@ import java.util.HashMap;
  *  * TOF sensors have been configured (via the Windows application):
  *     * To be in UART mode
  *     * To have unique IDs (0..255)
- *     * To have a baud rate of 921600
+ *     * To have a baud rate of 230400 (max allowed by RoboRIO 2 MXP port)
  *
  * see: https://www.waveshare.com/wiki/TOF_Laser_Range_Sensor
  */
 public class SerialTOFSensor {
-    private static final int DEFAULT_BAUD_RATE = 921600;
+    private static final int DEFAULT_BAUD_RATE = 230400;
     private static final int FRAME_SIZE = 16;
     private static final byte HEADER_1 = 0x57; // Frame Header
     private static final byte HEADER_2 = 0x00; // Function Mark
@@ -217,7 +216,7 @@ public class SerialTOFSensor {
         sensorDataMap.put(id, sensorData);
 
         // Publish to SmartDashboard
-        // publishToSmartDashboard(id, sensorData);
+        publishToSmartDashboard(id, sensorData);
     }
 
     public SensorData getSensorData(int id) {

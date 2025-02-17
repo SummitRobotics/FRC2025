@@ -11,6 +11,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.AlignRequestToF;
 import frc.robot.commands.AutoPickup;
 import frc.robot.commands.AutoPlace;
 import frc.robot.commands.AutoPickup.AutoSegment;
@@ -144,6 +146,9 @@ public class RobotContainer {
         SIX_LEFT = new Pose2d(3.973, 5.231, Rotation2d.fromDegrees(300)),
         SIX_RIGHT = new Pose2d(3.697, 5.061, Rotation2d.fromDegrees(300));
 
+    // For testing
+    private final AlignRequestToF alignRequest = new AlignRequestToF(superstructure.getToFLeft(), superstructure.getToFRight());
+
     public RobotContainer() {
         // Check if PS5 controllers should be used
         boolean usePS5Controllers = Boolean.parseBoolean(System.getenv("USE_PS5_CONTROLLERS"));
@@ -256,6 +261,7 @@ public class RobotContainer {
         // SmartDashboard.putData("L4", selectL4);
         SmartDashboard.putData("Field", field);
         configureBindings();
+        CameraServer.startAutomaticCapture();
         FollowPathCommand.warmupCommand().schedule();
         PathfindingCommand.warmupCommand().schedule();
     }
@@ -334,6 +340,7 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
         driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
         driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, AutoPickup.getCoralSide(drivetrain.getState().Pose)));
+        driverController.x().whileTrue(drivetrain.applyRequest(() -> alignRequest));
         // Put upward after receive
         new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
             .and(superstructure.getCoralSensorIntake())

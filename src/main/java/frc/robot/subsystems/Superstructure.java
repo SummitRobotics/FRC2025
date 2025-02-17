@@ -26,6 +26,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.devices.CandiCoralSensor;
 import frc.robot.devices.SerialTOFSensor;
+import frc.robot.devices.SerialTOFSensor.SensorData;
+import frc.robot.devices.SerialTOFSensor.Status;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.utilities.Functions;
@@ -175,11 +177,13 @@ public class Superstructure extends SubsystemBase {
     }
 
     public DoubleSupplier getToFLeft() {
-        return () -> tofSensor.getSensorData(Constants.Devices.TOF_ID_LEFT).distance;
+        SensorData data = tofSensor.getSensorData(Constants.Devices.TOF_ID_LEFT);
+        return () -> data != null && data.status == Status.MEASURE_VALID ? data.distance : -1;
     }
 
     public DoubleSupplier getToFRight() {
-        return () -> tofSensor.getSensorData(Constants.Devices.TOF_ID_RIGHT).distance;
+        SensorData data = tofSensor.getSensorData(Constants.Devices.TOF_ID_RIGHT);
+        return () -> data != null && data.status == Status.MEASURE_VALID ? data.distance : -1;
     }
 
     @Override
