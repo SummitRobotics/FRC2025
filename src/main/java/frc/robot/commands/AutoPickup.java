@@ -10,7 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -63,24 +63,27 @@ public class AutoPickup extends SequentialCommandGroup {
         }
         if (!Utils.isSimulation()) {
             addCommands(
-                new InstantCommand(() -> {
-
-                }),
                 new ParallelCommandGroup(
-                    // new InstantCommand(() -> {
-                        // System.out.println("Side name " + side.get().pathName);
-                        // System.out.println("Path " + path.name);
-                    // }),
                     scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
                     superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE),
                     new SequentialCommandGroup(
-                        AutoBuilder.pathfindThenFollowPath(side.get() == CoralStationSide.LEFT ? leftPath : rightPath, constraints),
+                        new ConditionalCommand(
+                            AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
+                            AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
+                            () -> side.get() == CoralStationSide.LEFT
+                        ),
                         new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight())
                     )
                 ).until(superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()))
             );
         } else {
-            addCommands(AutoBuilder.pathfindThenFollowPath(side.get() == CoralStationSide.LEFT ? leftPath : rightPath, constraints));
+            addCommands(
+                new ConditionalCommand(
+                    AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
+                    AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
+                    () -> side.get() == CoralStationSide.LEFT
+                )
+            );
         }
     }
 }
