@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utilities.lists.Constants;
 
 public class CandiCoralSensor {
-    CANdi candi = new CANdi(Constants.Manipulator.SENSOR_ID);
+    CANdi candi = new CANdi(Constants.Manipulator.CORAL_SENSOR_ID);
 
     public CandiCoralSensor() {
         CANdiConfiguration config = new CANdiConfiguration();

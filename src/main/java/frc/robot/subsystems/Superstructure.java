@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
+
 import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.devices.CandiCoralSensor;
+import frc.robot.devices.SerialTOFSensor;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.utilities.Functions;
@@ -94,7 +96,8 @@ public class Superstructure extends SubsystemBase {
     private boolean pivotSafe = false;
     private boolean elevatorSafe = false;
     // Sensor
-    private CandiCoralSensor sensor = new CandiCoralSensor();
+    private CandiCoralSensor coralSensor = new CandiCoralSensor();
+    private SerialTOFSensor tofSensor = new SerialTOFSensor(230400);
 
     // Button box LED compatability
     ButtonBox buttonBox;
@@ -164,11 +167,19 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Trigger getCoralSensorIntake() {
-        return sensor.detectedIntakeSide();
+        return coralSensor.detectedIntakeSide();
     }
 
     public Trigger getCoralSensorPlace() {
-        return sensor.detectedPlacementSide();
+        return coralSensor.detectedPlacementSide();
+    }
+
+    public DoubleSupplier getToFLeft() {
+        return () -> tofSensor.getSensorData(Constants.Devices.TOF_ID_LEFT).distance;
+    }
+
+    public DoubleSupplier getToFRight() {
+        return () -> tofSensor.getSensorData(Constants.Devices.TOF_ID_RIGHT).distance;
     }
 
     @Override
@@ -177,6 +188,7 @@ public class Superstructure extends SubsystemBase {
         for (Button button : Button.values()) {
             buttonBox.LED(button, button == state.button);
         }
+        tofSensor.tick();
     }
 
     // Set elevator position
@@ -289,8 +301,10 @@ public class Superstructure extends SubsystemBase {
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        builder.addStringProperty("State", () -> getState().description, null);
-        builder.addBooleanProperty("Sensor intake", getCoralSensorIntake()::getAsBoolean, null);
-        builder.addBooleanProperty("Sensor place", getCoralSensorPlace()::getAsBoolean, null);
+        builder.addStringProperty("State", getState()::name, null);
+        builder.addBooleanProperty("Sensor Intake", getCoralSensorIntake()::getAsBoolean, null);
+        builder.addBooleanProperty("Sensor Place", getCoralSensorPlace()::getAsBoolean, null);
+        builder.addDoubleProperty("ToF Left", getToFLeft()::getAsDouble, null);
+        builder.addDoubleProperty("ToF Right", getToFRight()::getAsDouble, null);
     }
 }
