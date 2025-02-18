@@ -19,7 +19,10 @@ public class AlignRequestToF extends Command {
 
     CommandSwerveDrivetrain drivetrain;
 
-    public AlignRequestToF(CommandSwerveDrivetrain drivetrain, DoubleSupplier leftToF, DoubleSupplier rightToF) {
+    private double distanceSetpoint;
+
+    public AlignRequestToF(CommandSwerveDrivetrain drivetrain, DoubleSupplier leftToF, DoubleSupplier rightToF, double setpoint) {
+        distanceSetpoint = setpoint;
         this.drivetrain = drivetrain;
         this.leftToF = leftToF;
         this.rightToF = rightToF;
@@ -33,6 +36,10 @@ public class AlignRequestToF extends Command {
         translateController.setTolerance(0.001);
         rotateController.reset();
         translateController.reset();
+    }
+
+    public AlignRequestToF(CommandSwerveDrivetrain drivetrain, DoubleSupplier leftToF, DoubleSupplier rightToF) {
+        this(drivetrain, leftToF, rightToF, 0);
     }
 
     @Override
@@ -54,7 +61,7 @@ public class AlignRequestToF extends Command {
 
     private double getTranslationRate() {
         return leftToF.getAsDouble() > 0 && rightToF.getAsDouble() > 0 ? -translateController.calculate(Math.min(
-            leftToF.getAsDouble(), rightToF.getAsDouble()), Constants.Physical.TOF_OFFSET_METERS) : 0;
+            leftToF.getAsDouble(), rightToF.getAsDouble()), Constants.Physical.TOF_OFFSET_METERS + distanceSetpoint) : 0;
     }
 
     @Override

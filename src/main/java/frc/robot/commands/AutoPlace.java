@@ -119,7 +119,8 @@ public class AutoPlace extends SequentialCommandGroup {
             )
         );
         SequentialCommandGroup scrub = new SequentialCommandGroup(
-            superstructure.setPreset(node.scrub).until(superstructure::atSetpoint).withDeadline(new WaitCommand(0.5)),    
+            superstructure.setPreset(node.scrub).until(superstructure::atSetpoint).withDeadline(new WaitCommand(0.5)),
+            new WaitCommand(0.5),
             scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS).withDeadline(new WaitCommand(0.5))
         );
 

@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
@@ -74,7 +76,8 @@ public class AutoPickup extends SequentialCommandGroup {
                         ),
                         new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight())
                     )
-                ).until(superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()))
+                ).until(() -> superstructure.getCoralSensorIntake().getAsBoolean() && superstructure.getCoralSensorPlace().getAsBoolean())
+                // new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight(), 1).withDeadline(new WaitCommand(1))
             );
         } else {
             addCommands(

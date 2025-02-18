@@ -281,6 +281,9 @@ public class RobotContainer {
                     .withRotationalRate(-driverController.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
+        superstructure.setDefaultCommand(
+            superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
+        );
 
         // driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // driverController.b().whileTrue(drivetrain.applyRequest(() ->
