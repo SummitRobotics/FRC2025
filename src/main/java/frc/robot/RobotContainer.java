@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WrapperCommand;
@@ -342,25 +343,29 @@ public class RobotContainer {
         driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, () -> AutoPickup.getCoralSide(drivetrain.getState().Pose)));
         driverController.x().whileTrue(new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight()));
         // Put upward after receive
-        new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
-            .and(superstructure.getCoralSensorIntake())
-            .and(superstructure.getCoralSensorPlace())
-            .onTrue(
-                new SequentialCommandGroup(
-                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withDeadline(new WaitCommand(0.5)),
-                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
-                )
-            );
+        // new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
+            // .and(superstructure.getCoralSensorIntake())
+            // .and(superstructure.getCoralSensorPlace())
+            // .and(() -> !DriverStation.isAutonomous())
+            // .onTrue(
+                // new SequentialCommandGroup(
+                    // superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withDeadline(new WaitCommand(0.5)),
+                    // superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
+                // )
+            // );
     }
 
     public Command getAutonomousCommand() {
         return new SequentialCommandGroup(
             new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
             new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
+            new PrintCommand("Finished segment 1"),
             new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
             new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
+            new PrintCommand("Finished segment 2"),
             new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
-            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree)
+            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree),
+            new PrintCommand("Finished segment 3")
         );
     }
 

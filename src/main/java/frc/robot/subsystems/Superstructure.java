@@ -314,5 +314,7 @@ public class Superstructure extends SubsystemBase {
         builder.addBooleanProperty("Sensor Place", getCoralSensorPlace()::getAsBoolean, null);
         builder.addDoubleProperty("ToF Left", getToFLeft()::getAsDouble, null);
         builder.addDoubleProperty("ToF Right", getToFRight()::getAsDouble, null);
+        builder.addDoubleProperty("Elevator encoder", elevatorA.getPosition()::getValueAsDouble, null);
+        builder.addStringProperty("Command", () -> this.getCurrentCommand() != null ? this.getCurrentCommand().getName() : "", null);
     }
 }

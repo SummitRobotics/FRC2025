@@ -3,6 +3,7 @@ package frc.robot.commands;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -11,7 +12,9 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
@@ -66,17 +69,29 @@ public class AutoPickup extends SequentialCommandGroup {
         if (!Utils.isSimulation()) {
             addCommands(
                 new ParallelCommandGroup(
+                    new PrintCommand("Auto pickup running").repeatedly(),
                     scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
-                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE),
+                    new SequentialCommandGroup(
+                        superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withDeadline(new WaitCommand(1)),
+                        superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
+                    ),
                     new SequentialCommandGroup(
                         new ConditionalCommand(
                             AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
                             AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
                             () -> side.get() == CoralStationSide.LEFT
-                        ),
-                        new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight())
+                        )
+                        // new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight())
                     )
-                ).until(() -> superstructure.getCoralSensorIntake().getAsBoolean() && superstructure.getCoralSensorPlace().getAsBoolean())
+                ).withDeadline(
+                    new WaitUntilCommand(() -> superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()).getAsBoolean())
+                )
+
+                //.until(() -> superstructure.getCoralSensorIntake().debounce(0.2).getAsBoolean() && superstructure.getCoralSensorPlace().debounce(0.2).getAsBoolean()),
+                // new PrintCommand("Finished auto align"),
+                // new PrintCommand("Actually finished auto align"),
+                // new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-0.5))).repeatedly().withDeadline(new WaitCommand(2)),
+                // new PrintCommand("Drove backwards")
                 // new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight(), 1).withDeadline(new WaitCommand(1))
             );
         } else {
