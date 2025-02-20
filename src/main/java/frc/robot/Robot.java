@@ -28,10 +28,10 @@ public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer;
 
   // TEMP: Set up LED
-  private final AddressableLED m_frontLed;
-  private final AddressableLEDBuffer m_frontLedBuffer;
-  private final AddressableLED m_leftLed;
-  private final AddressableLEDBuffer m_leftLedBuffer;
+  // private final AddressableLED m_frontLed;
+  // private final AddressableLEDBuffer m_frontLedBuffer;
+  // private final AddressableLED m_leftLed;
+  // private final AddressableLEDBuffer m_leftLedBuffer;
   private final AddressableLED m_rightLed;
   private final AddressableLEDBuffer m_rightLedBuffer;
   private static final Distance kLedSpacing = Meters.of(1 / 120.0);
@@ -45,7 +45,8 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     Epilogue.bind(this);
     m_robotContainer = new RobotContainer();
-
+ 
+    /*
     // TEMP: Set up LED
     m_frontLed = new AddressableLED(0);
     m_frontLedBuffer = new AddressableLEDBuffer(13);
@@ -60,6 +61,7 @@ public class Robot extends TimedRobot {
     m_leftLed.setLength(m_leftLedBuffer.getLength());
     m_leftLed.setData(m_leftLedBuffer);
     m_leftLed.start();
+    */
 
     m_rightLed = new AddressableLED(2);
     m_rightLedBuffer = new AddressableLEDBuffer(27);
@@ -72,9 +74,9 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
     m_robotContainer.robotPeriodic();
-    absolutePattern.applyTo(m_leftLedBuffer);
+    // absolutePattern.applyTo(m_leftLedBuffer);
     absolutePattern.applyTo(m_rightLedBuffer);
-    m_leftLed.setData(m_leftLedBuffer);
+    // m_leftLed.setData(m_leftLedBuffer);
     m_rightLed.setData(m_rightLedBuffer);
 
 
