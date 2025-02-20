@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -8,6 +9,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -71,7 +73,7 @@ public class AutoPlace extends SequentialCommandGroup {
         }
 
         public String toString() {
-            return "Hex: " + hexSide.name + ", Side: " + side.name + ", L: " + l.description;
+            return "Hex: " + hexSide.name + ", Side: " + side.name + ", L: " + l.description + ", Scrub: " + scrub.description;
         }
     }
 
@@ -133,8 +135,18 @@ public class AutoPlace extends SequentialCommandGroup {
                 addCommands(scrub);
             }
             addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint).withDeadline(new WaitCommand(0.5)));
+            // Back up slightly
+            addCommands(
+                new ParallelCommandGroup(
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER),
+                    new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly()
+                ).withDeadline(new WaitCommand(0.5))
+            );
         } else {
-            addCommands(AutoBuilder.pathfindThenFollowPath(path, constraints));
+            addCommands(
+                AutoBuilder.pathfindThenFollowPath(path, constraints),
+                new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withDeadline(new WaitCommand(0.5))
+            );
         }
     }
 }

@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -66,32 +67,52 @@ public class AutoPickup extends SequentialCommandGroup {
             e.printStackTrace();
             throw (new RuntimeException("Loaded a path that does not exist."));
         }
+        // ConditionalCommand pathfind = 
+            // new ConditionalCommand(
+                // AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
+                // AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
+                // () -> side.get() == CoralStationSide.LEFT
+            // );
         if (!Utils.isSimulation()) {
             addCommands(
                 new ParallelCommandGroup(
-                    new PrintCommand("Auto pickup running").repeatedly(),
+                    // new PrintCommand("Auto pickup running").repeatedly(),
                     scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
                     new SequentialCommandGroup(
                         superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withDeadline(new WaitCommand(1)),
                         superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
                     ),
                     new SequentialCommandGroup(
-                        new ConditionalCommand(
-                            AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
-                            AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
-                            () -> side.get() == CoralStationSide.LEFT
+                        new ParallelCommandGroup(
+                            new ConditionalCommand(
+                                AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
+                                AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
+                                () -> side.get() == CoralStationSide.LEFT
+                            ),
+                            // pathfind.withTimeout(3).repeatedly(),
+                            new PrintCommand("Pathfinding to station").repeatedly()
                         )
                         // new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight())
-                    )
+                    ).withName("Pathfinding to station"),
+                    new WaitCommand(1),
+                    new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0)))
                 ).withDeadline(
                     new WaitUntilCommand(() -> superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()).getAsBoolean())
-                )
-
+                ),
+                // new ConditionalCommand(
+                //    new InstantCommand(() -> drivetrain.resetPose(leftPath.getStartingDifferentialPose())),
+                //    new InstantCommand(() -> drivetrain.resetPose(rightPath.getStartingDifferentialPose())),
+                //    () -> side.get() == CoralStationSide.LEFT
+                // ),
                 //.until(() -> superstructure.getCoralSensorIntake().debounce(0.2).getAsBoolean() && superstructure.getCoralSensorPlace().debounce(0.2).getAsBoolean()),
-                // new PrintCommand("Finished auto align"),
+                new PrintCommand("Finished auto align"),
                 // new PrintCommand("Actually finished auto align"),
-                // new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-0.5))).repeatedly().withDeadline(new WaitCommand(2)),
-                // new PrintCommand("Drove backwards")
+                // Back up slightly
+                new ParallelCommandGroup(
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE),
+                    new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly()
+                ).withDeadline(new WaitCommand(0.25)),
+                new PrintCommand("Drove backwards")
                 // new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight(), 1).withDeadline(new WaitCommand(1))
             );
         } else {
@@ -100,7 +121,8 @@ public class AutoPickup extends SequentialCommandGroup {
                     AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
                     AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
                     () -> side.get() == CoralStationSide.LEFT
-                )
+                ),
+                new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withDeadline(new WaitCommand(0.25))
             );
         }
     }

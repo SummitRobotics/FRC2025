@@ -22,6 +22,10 @@ public class Climb extends SubsystemBase {
             .withKG(Constants.Climb.kG)
             .withKV(Constants.Climb.kV)
             .withKA(Constants.Climb.kS);
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Climb.MAX_ROTATIONS;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
         climbMotor.getConfigurator().apply(config);
     }
 

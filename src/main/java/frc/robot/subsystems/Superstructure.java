@@ -40,7 +40,7 @@ public class Superstructure extends SubsystemBase {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
         STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.8, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
         RECEIVE(2.3, -0.130859, 0, 0, "Receive", Button.RECEIVE_PRESET),
-        L1(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
+        L1(0.1, Constants.Manipulator.MIN_ROTATIONS / 2, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.145408, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
@@ -49,7 +49,7 @@ public class Superstructure extends SubsystemBase {
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, -1, "2", null),
         L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, -1, "3", null),
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, -1, "4", null),
-        MANUAL_OVERRIDE(0, 0, 0, 0, "Manual Override", null); // being manually overridden to something
+        MANUAL_OVERRIDE(0.3, 0, 0, 0, "None", null); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRotations;
         public double leftBelt;
@@ -252,6 +252,16 @@ public class Superstructure extends SubsystemBase {
                 if (getCoralSensorIntake().negate().getAsBoolean()) return -0.85;
                 return 0;
             }
+        };
+        return setPresetWithBeltOverride(preset, beltSupplier, () -> -beltSupplier.getAsDouble());
+    }
+
+    public Command setPresetWithFarSpit(SuperstructurePreset preset) {
+        DoubleSupplier beltSupplier = new DoubleSupplier() {
+            @Override
+            public double getAsDouble() {
+                return 0;
+            }   
         };
         return setPresetWithBeltOverride(preset, beltSupplier, () -> -beltSupplier.getAsDouble());
     }

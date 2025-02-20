@@ -205,7 +205,7 @@ public class RobotContainer {
         autoSegmentChoice.addOption("Do Second", AutoSegment.DO_SECOND);
         autoSegmentChoice.addOption("Do Third", AutoSegment.DO_THIRD);
         WrapperCommand updateAutoChoice = new InstantCommand(() -> {
-            Node result = new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), SuperstructurePreset.MANUAL_OVERRIDE);
+            Node result = new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected());
             switch (autoSegmentChoice.getSelected()) {
                 case DO_FIRST: {
                     autoNodeOne = result;
@@ -241,6 +241,7 @@ public class RobotContainer {
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
         // SmartDashboard.putData("Auto Mode", autoChooser);
         SmartDashboard.putData("Superstructure", superstructure);
+        // SmartDashboard.putData("Drivetrain", drivetrain);
         // SmartDashboard.putData("One Left", selectOneLeft);
         // SmartDashboard.putData("One Right", selectOneRight);
         // SmartDashboard.putData("Two Left", selectTwoLeft);
@@ -258,6 +259,9 @@ public class RobotContainer {
         // SmartDashboard.putData("L3", selectL3);
         // SmartDashboard.putData("L4", selectL4);
         SmartDashboard.putData("Field", field);
+        // Climb
+        // SmartDashboard.putData("Extend Climb", new InstantCommand(() -> {}));
+        // SmartDashboard.putData("Retract Climb", new InstantCommand(() -> {}));
         configureBindings();
         CameraServer.startAutomaticCapture();
         FollowPathCommand.warmupCommand().schedule();
