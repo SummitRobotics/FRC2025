@@ -84,6 +84,10 @@ public class AutoPlace extends SequentialCommandGroup {
             Units.degreesToRadians(270 * 1.25), Units.degreesToRadians(360 * 1.25));
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
+        this(drivetrain, superstructure, scrubber, node, "");
+    }
+
+    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName) {
         PathPlannerPath path;
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
@@ -91,13 +95,12 @@ public class AutoPlace extends SequentialCommandGroup {
         pathName += node.side.name;
         if (node.l == SuperstructurePreset.L1) pathName += "1";
         try {
-            path = PathPlannerPath.fromPathFile(pathName);
+            path = PathPlannerPath.fromPathFile(suppliedPathName.isEmpty() ? pathName : suppliedPathName);
         } catch (Exception e) {
             e.printStackTrace();
             throw (new RuntimeException("Loaded a path that does not exist."));
         }
 
-        // Command move = AutoBuilder.pathfindThenFollowPath(path, constraints);
         Command move = new ParallelDeadlineGroup(
             // new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.SwerveDriveBrake())).repeatedly().withDeadline(new WaitCommand(0.3)),
             // new ParallelDeadlineGroup(
@@ -119,7 +122,11 @@ public class AutoPlace extends SequentialCommandGroup {
                     // : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) ? node.scrub : SuperstructurePreset.STOW_UPPER
                 // )
             // )
-            AutoBuilder.pathfindThenFollowPath(path, constraints),
+            new ConditionalCommand(
+                AutoBuilder.pathfindThenFollowPath(path, constraints),
+                AutoBuilder.followPath(path),
+                () -> suppliedPathName.isEmpty()
+            ),
             new ConditionalCommand(
                 superstructure.setPreset(SuperstructurePreset.L2),
                 new ConditionalCommand(
@@ -176,9 +183,15 @@ public class AutoPlace extends SequentialCommandGroup {
                 ).withDeadline(new WaitCommand(0.5))
             );
         } else {
+            Timer timer = new Timer();
             addCommands(
-                AutoBuilder.pathfindThenFollowPath(path, constraints),
-                new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withDeadline(new WaitCommand(0.5))
+                new ConditionalCommand(
+                    AutoBuilder.pathfindThenFollowPath(path, constraints),
+                    AutoBuilder.followPath(path),
+                    () -> suppliedPathName.isEmpty()
+                ),
+                new InstantCommand(timer::restart),
+                new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-timer.get() * 4))).repeatedly().withDeadline(new WaitCommand(0.5))
             );
         }
     }

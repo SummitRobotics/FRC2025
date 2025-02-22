@@ -52,6 +52,10 @@ public class AutoPickup extends SequentialCommandGroup {
     }
 
     public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side) {
+        this(drivetrain, superstructure, scrubber, side, "");
+    }
+
+    public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side, String suppliedPathName) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
                 3.0 * 1.25, 4.0 * 1.25,
@@ -64,6 +68,16 @@ public class AutoPickup extends SequentialCommandGroup {
         } catch (Exception e) {
             e.printStackTrace();
             throw (new RuntimeException("Loaded a path that does not exist."));
+        }
+        PathPlannerPath suppliedPath;
+        if (!suppliedPathName.isEmpty()) {
+            try {
+                suppliedPath = PathPlannerPath.fromPathFile(suppliedPathName);
+            } catch (Exception e) {
+                throw new RuntimeException();
+            }
+        } else {
+            suppliedPath = leftPath;
         }
         // ConditionalCommand pathfind = 
             // new ConditionalCommand(
@@ -83,9 +97,13 @@ public class AutoPickup extends SequentialCommandGroup {
                     new SequentialCommandGroup(
                         new ParallelCommandGroup(
                             new ConditionalCommand(
-                                AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
-                                AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
-                                () -> side.get() == CoralStationSide.LEFT
+                                new ConditionalCommand(
+                                    AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
+                                    AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
+                                    () -> side.get() == CoralStationSide.LEFT
+                                ),
+                                AutoBuilder.followPath(suppliedPath),
+                                () -> suppliedPathName.isEmpty()
                             ),
                             // pathfind.withTimeout(3).repeatedly(),
                             new PrintCommand("Pathfinding to station").repeatedly()
@@ -116,9 +134,13 @@ public class AutoPickup extends SequentialCommandGroup {
         } else {
             addCommands(
                 new ConditionalCommand(
-                    AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
-                    AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
-                    () -> side.get() == CoralStationSide.LEFT
+                    new ConditionalCommand(
+                        AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
+                        AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
+                        () -> side.get() == CoralStationSide.LEFT
+                    ),
+                    AutoBuilder.followPath(suppliedPath),
+                    () -> suppliedPath != null
                 ),
                 new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withDeadline(new WaitCommand(0.25))
             );

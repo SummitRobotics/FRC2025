@@ -11,6 +11,8 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -235,9 +237,9 @@ public class RobotContainer {
                 builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
             }
         });
-        SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
-        SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
-        SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
+        // SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
+        // SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
+        // SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
@@ -366,17 +368,33 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return new SequentialCommandGroup(
-            new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
-            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
-            new PrintCommand("Finished segment 1"),
-            new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
-            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
-            new PrintCommand("Finished segment 2"),
-            new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
-            new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree),
-            new PrintCommand("Finished segment 3")
-        );
+        try {
+            return
+                new SequentialCommandGroup(
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceA"),
+                    new PrintCommand("Finished segment 1"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceB"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceC"),
+                    new PrintCommand("Finished segment 2"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceD"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceE"),
+                    new PrintCommand("Finished segment 3")
+                );
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+        // new SequentialCommandGroup(
+            // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
+            // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
+            // new PrintCommand("Finished segment 1"),
+            // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
+            // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
+            // new PrintCommand("Finished segment 2"),
+            // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
+            // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree),
+            // new PrintCommand("Finished segment 3")
+        // );
     }
 
     public void simulationPeriodic() {
