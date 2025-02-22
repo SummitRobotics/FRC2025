@@ -51,12 +51,11 @@ public class AutoPickup extends SequentialCommandGroup {
         }
     }
 
-
     public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
-                3.0, 4.0,
-                Units.degreesToRadians(270), Units.degreesToRadians(360));
+                3.0 * 1.25, 4.0 * 1.25,
+                Units.degreesToRadians(270 * 1.25), Units.degreesToRadians(360 * 1.25));
         PathPlannerPath leftPath;
         PathPlannerPath rightPath;
         try {
@@ -96,7 +95,7 @@ public class AutoPickup extends SequentialCommandGroup {
                     new WaitCommand(0.5),
                     new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0)))
                 ).withDeadline(
-                    new WaitUntilCommand(() -> superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()).getAsBoolean())
+                    new WaitUntilCommand(() -> superstructure.getCoralSensorIntake()/*.and(superstructure.getCoralSensorPlace())*/.getAsBoolean())
                 ),
                 // new ConditionalCommand(
                 //    new InstantCommand(() -> drivetrain.resetPose(leftPath.getStartingDifferentialPose())),

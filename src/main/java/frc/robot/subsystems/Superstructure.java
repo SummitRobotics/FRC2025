@@ -49,6 +49,7 @@ public class Superstructure extends SubsystemBase {
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, -1, "2", null),
         L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, -1, "3", null),
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, -1, "4", null),
+        L4_INTERMEDIATE(L3.elevatorRotations, STOW_UPPER.pivotRotations, 0, 0, "Intermediate", null),
         MANUAL_OVERRIDE(0.3, 0, 0, 0, "None", null); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRotations;

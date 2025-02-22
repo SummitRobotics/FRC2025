@@ -263,8 +263,9 @@ public class RobotContainer {
         // SmartDashboard.putData("L4", selectL4);
         SmartDashboard.putData("Field", field);
         // Climb
-        SmartDashboard.putData("Extend Climb", climb.set(() -> Constants.Climb.MAX_ROTATIONS));
-        SmartDashboard.putData("Retract Climb", climb.set(() -> 0));
+        SmartDashboard.putData("Extend", climb.extend());
+        SmartDashboard.putData("Lift", climb.lift());
+        SmartDashboard.putData("Retract", climb.retract());
         configureBindings();
         CameraServer.startAutomaticCapture();
         FollowPathCommand.warmupCommand().schedule();

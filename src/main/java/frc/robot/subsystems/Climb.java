@@ -1,17 +1,22 @@
 package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.lists.Constants;
 
 public class Climb extends SubsystemBase {
     private final TalonFX
         climbMotor = new TalonFX(Constants.Climb.CLIMB_ID);
-    private final PositionVoltage request = new PositionVoltage(0).withSlot(0);
+    private final MotionMagicVoltage request = new MotionMagicVoltage(0).withSlot(0);
     public Climb() {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.Slot0
@@ -22,15 +27,43 @@ public class Climb extends SubsystemBase {
             .withKG(Constants.Climb.kG)
             .withKV(Constants.Climb.kV)
             .withKA(Constants.Climb.kS);
+        config.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Climb.MAX_ROTATIONS;
         config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
+        config.MotionMagic
+            .withMotionMagicCruiseVelocity(Constants.Climb.MAX_VELOCITY_OUT)
+            .withMotionMagicAcceleration(Constants.Climb.MAX_ACCEL_OUT);
+        config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
         climbMotor.getConfigurator().apply(config);
         climbMotor.setPosition(0);
     }
 
     public Command set(DoubleSupplier encoder) {
         return this.run(() -> climbMotor.setControl(request.withPosition(encoder.getAsDouble())));
+    }
+
+    public Command setWithMotionProfile(DoubleSupplier encoder, double maxVel, double maxAccel) {
+        return new SequentialCommandGroup(
+            new InstantCommand(() -> {
+                climbMotor.getConfigurator().apply(new MotionMagicConfigs()
+                    .withMotionMagicCruiseVelocity(maxVel)
+                    .withMotionMagicAcceleration(maxAccel));
+            }),
+            set(encoder)
+        );
+    }
+
+    public Command extend() {
+        return setWithMotionProfile(() -> Constants.Climb.MAX_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT);
+    }
+
+    public Command lift() {
+        return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN);
+    }
+
+    public Command retract() {
+        return setWithMotionProfile(() -> 0, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT);
     }
 }

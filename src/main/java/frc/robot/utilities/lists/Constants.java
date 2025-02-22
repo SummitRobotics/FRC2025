@@ -93,14 +93,19 @@ public class Constants {
         public static final int
             CLIMB_ID = 17;
         public static final double
-            P = 0,
-            I = 0,
+            P = 6,
+            I = 0.4,
             D = 0,
             kG = 0,
             kS = 0,
-            kV = 0,
+            kV = 1.2,
             kA = 0,
-            MAX_ROTATIONS = 0;
+            MAX_ROTATIONS = 210,
+            BACK_ROTATIONS = -105,
+            MAX_VELOCITY_IN = 30,
+            MAX_ACCEL_IN = 60,
+            MAX_VELOCITY_OUT = 200,
+            MAX_ACCEL_OUT = 180;
     }
 
     public static class LED {

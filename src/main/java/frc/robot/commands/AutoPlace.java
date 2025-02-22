@@ -6,6 +6,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -79,8 +80,8 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraints = new PathConstraints(
-            3.0, 4.0,
-            Units.degreesToRadians(270), Units.degreesToRadians(360));
+            3.0 * 1.25, 4.0 * 1.25,
+            Units.degreesToRadians(270 * 1.25), Units.degreesToRadians(360 * 1.25));
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
         PathPlannerPath path;
@@ -97,25 +98,44 @@ public class AutoPlace extends SequentialCommandGroup {
         }
 
         // Command move = AutoBuilder.pathfindThenFollowPath(path, constraints);
-        Command move = new SequentialCommandGroup(
+        Command move = new ParallelDeadlineGroup(
             // new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.SwerveDriveBrake())).repeatedly().withDeadline(new WaitCommand(0.3)),
-            new ParallelDeadlineGroup(
-                AutoBuilder.pathfindToPoseFlipped(path.getStartingHolonomicPose().get(), constraints),
-                new ConditionalCommand(superstructure.setPreset(node.l), new InstantCommand(), () -> node.l == SuperstructurePreset.L2)
-            ),
-            new ParallelDeadlineGroup(
-                AutoBuilder.followPath(path),
-                superstructure.setPreset(
-                    node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l
-                    : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) ? node.scrub : SuperstructurePreset.STOW_UPPER
-                )
+            // new ParallelDeadlineGroup(
+                // AutoBuilder.pathfindToPoseFlipped(path.getStartingHolonomicPose().get(), constraints),
+                // new ConditionalCommand(
+                    // superstructure.setPreset(node.l),
+                    // new ConditionalCommand(
+                        // superstructure.setPreset(SuperstructurePreset.L4_INTERMEDIATE),
+                        // new InstantCommand(() -> {}),
+                        // () -> node.l == SuperstructurePreset.L4 || node.l == SuperstructurePreset.L3
+                    // ),
+                    // () -> node.l == SuperstructurePreset.L2
+                // )
+            // ),
+            // new ParallelDeadlineGroup(
+                // AutoBuilder.followPath(path),
+                // superstructure.setPreset(
+                    // node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l
+                    // : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) ? node.scrub : SuperstructurePreset.STOW_UPPER
+                // )
+            // )
+            AutoBuilder.pathfindThenFollowPath(path, constraints),
+            new ConditionalCommand(
+                superstructure.setPreset(SuperstructurePreset.L2),
+                new ConditionalCommand(
+                    superstructure.setPreset(SuperstructurePreset.L4_INTERMEDIATE),
+                    new InstantCommand(() -> {}),
+                    () -> node.l == SuperstructurePreset.L4 || node.l == SuperstructurePreset.L3
+                ),
+                () -> node.l == SuperstructurePreset.L2
             )
         );
         // new EventTrigger("Align").onTrue(new InstantCommand(() -> CommandScheduler.getInstance().schedule(
             // superstructure.setPreset(node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE ? node.scrub : SuperstructurePreset.STOW_UPPER))
         // )));
         SequentialCommandGroup place = new SequentialCommandGroup(
-            superstructure.setPreset(node.l).until(superstructure::atSetpoint).withDeadline(new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5)),
+            superstructure.setPreset(node.l).until(superstructure::atSetpoint).withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),//.withDeadline(new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5)),
+            new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.5 : 0),
             new ParallelDeadlineGroup(
                 node.l == SuperstructurePreset.L1 ? new WaitCommand(2) : new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
                 // Different behavior for L1
@@ -143,13 +163,17 @@ public class AutoPlace extends SequentialCommandGroup {
             if (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) {
                 addCommands(scrub);
             }
-            addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint).withDeadline(new WaitCommand(0.5)));
+            // addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint).withTimeout(0.5));
             // Back up slightly
+            Timer timer = new Timer();
             addCommands(
                 new ParallelCommandGroup(
-                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER),
-                    new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly()
-                ).withDeadline(new WaitCommand(0.25))
+                    superstructure.setPreset(SuperstructurePreset.STOW_UPPER),
+                    new SequentialCommandGroup(
+                        new InstantCommand(timer::restart),
+                        new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-timer.get() * 4))).repeatedly()
+                    )
+                ).withDeadline(new WaitCommand(0.5))
             );
         } else {
             addCommands(
