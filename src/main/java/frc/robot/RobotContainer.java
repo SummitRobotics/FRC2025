@@ -243,8 +243,10 @@ public class RobotContainer {
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
         // SmartDashboard.putData("Auto Mode", autoChooser);
-        SmartDashboard.putData("Superstructure", superstructure);
-        // SmartDashboard.putData("Drivetrain", drivetrain);
+        if (Constants.DEBUG_LOG_ENABLED) {
+            SmartDashboard.putData("Superstructure", superstructure);
+            SmartDashboard.putData("Drivetrain", drivetrain);
+        }
         // SmartDashboard.putData("One Left", selectOneLeft);
         // SmartDashboard.putData("One Right", selectOneRight);
         // SmartDashboard.putData("Two Left", selectTwoLeft);
