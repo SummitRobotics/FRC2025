@@ -53,6 +53,6 @@ public class Scrubber extends SubsystemBase {
     }
 
     public boolean safe() {
-        return Functions.withinTolerance(scrubber.getPosition().getValueAsDouble(), Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations, 0.25);
+        return Functions.withinTolerance(scrubber.getPosition().getValueAsDouble(), Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations, 2.5);
     }
 }

@@ -79,8 +79,8 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraints = new PathConstraints(
-            3.0 / 2, 4.0 / 2,
-            Units.degreesToRadians(270 / 2), Units.degreesToRadians(360 / 2));
+            3.0, 4.0,
+            Units.degreesToRadians(270), Units.degreesToRadians(360));
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
         PathPlannerPath path;
@@ -88,6 +88,7 @@ public class AutoPlace extends SequentialCommandGroup {
         // Name format is [side number][L/R] (e.g. 4R)
         pathName += node.hexSide.name;
         pathName += node.side.name;
+        if (node.l == SuperstructurePreset.L1) pathName += "1";
         try {
             path = PathPlannerPath.fromPathFile(pathName);
         } catch (Exception e) {
@@ -117,12 +118,20 @@ public class AutoPlace extends SequentialCommandGroup {
             superstructure.setPreset(node.l).until(superstructure::atSetpoint).withDeadline(new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5)),
             new ParallelDeadlineGroup(
                 node.l == SuperstructurePreset.L1 ? new WaitCommand(2) : new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
-                superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
+                // Different behavior for L1
+                new ConditionalCommand(
+                    superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l)),
+                    new SequentialCommandGroup(
+                        superstructure.setPresetWithFarSpit(SuperstructurePreset.L1).withTimeout(1),
+                        superstructure.setPreset(SuperstructurePreset.L1_GO)
+                    ),
+                    () -> node.l != SuperstructurePreset.L1
+                )
             )
         );
         SequentialCommandGroup scrub = new SequentialCommandGroup(
             superstructure.setPreset(node.scrub).until(superstructure::atSetpoint).withDeadline(new WaitCommand(0.5)),
-            new WaitCommand(0.5),
+            new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.5 : 0),
             scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS).withDeadline(new WaitCommand(0.5))
         );
 
@@ -140,7 +149,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 new ParallelCommandGroup(
                     superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER),
                     new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly()
-                ).withDeadline(new WaitCommand(0.5))
+                ).withDeadline(new WaitCommand(0.25))
             );
         } else {
             addCommands(

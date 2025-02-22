@@ -27,6 +27,7 @@ public class Climb extends SubsystemBase {
         config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Climb.MAX_ROTATIONS;
         config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
         climbMotor.getConfigurator().apply(config);
+        climbMotor.setPosition(0);
     }
 
     public Command set(DoubleSupplier encoder) {

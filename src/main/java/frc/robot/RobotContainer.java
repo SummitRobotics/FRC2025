@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -43,6 +42,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.oi.CommandControllerWrapper;
+import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.Scrubber;
@@ -77,6 +77,7 @@ public class RobotContainer {
     public final Superstructure superstructure = new Superstructure(buttonBox);
     public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
     public final LEDSubsystem ledSubsystem = new LEDSubsystem(Constants.LED.PWM_PORT, Constants.LED.LED_COUNT);
+    public final Climb climb = new Climb();
 
     // Auto-align chooser
     // private final SendableChooser<Command> autoChooser;
@@ -88,11 +89,11 @@ public class RobotContainer {
     // Auto
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
     private final SendableChooser<AutoSegment> autoSegmentChoice;
-    private Node autoNodeOne = new Node(SuperstructurePreset.L2, HexSide.ONE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
+    private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationOne = CoralStationSide.LEFT;
-    private Node autoNodeTwo = new Node(SuperstructurePreset.L2, HexSide.ONE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
+    private Node autoNodeTwo = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
-    private Node autoNodeThree = new Node(SuperstructurePreset.L2, HexSide.ONE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
+    private Node autoNodeThree = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationThree = CoralStationSide.LEFT;
 
     // Button-based node chooser
@@ -262,8 +263,8 @@ public class RobotContainer {
         // SmartDashboard.putData("L4", selectL4);
         SmartDashboard.putData("Field", field);
         // Climb
-        // SmartDashboard.putData("Extend Climb", new InstantCommand(() -> {}));
-        // SmartDashboard.putData("Retract Climb", new InstantCommand(() -> {}));
+        SmartDashboard.putData("Extend Climb", climb.set(() -> Constants.Climb.MAX_ROTATIONS));
+        SmartDashboard.putData("Retract Climb", climb.set(() -> 0));
         configureBindings();
         CameraServer.startAutomaticCapture();
         FollowPathCommand.warmupCommand().schedule();
@@ -349,16 +350,16 @@ public class RobotContainer {
         driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, () -> AutoPickup.getCoralSide(drivetrain.getState().Pose)));
         driverController.x().whileTrue(new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight()));
         // Put upward after receive
-        // new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
-            // .and(superstructure.getCoralSensorIntake())
-            // .and(superstructure.getCoralSensorPlace())
-            // .and(() -> !DriverStation.isAutonomous())
-            // .onTrue(
-                // new SequentialCommandGroup(
-                    // superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withDeadline(new WaitCommand(0.5)),
-                    // superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
-                // )
-            // );
+        new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
+            .and(superstructure.getCoralSensorIntake())
+            .and(superstructure.getCoralSensorPlace())
+            .and(() -> !DriverStation.isAutonomous())
+            .onTrue(
+                new SequentialCommandGroup(
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withTimeout(0.5),
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
+                )
+            );
     }
 
     public Command getAutonomousCommand() {

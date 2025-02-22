@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -56,8 +55,8 @@ public class AutoPickup extends SequentialCommandGroup {
     public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
-                3.0 / 2, 4.0 / 2,
-                Units.degreesToRadians(270 / 2), Units.degreesToRadians(360 / 2));
+                3.0, 4.0,
+                Units.degreesToRadians(270), Units.degreesToRadians(360));
         PathPlannerPath leftPath;
         PathPlannerPath rightPath;
         try {
@@ -79,7 +78,7 @@ public class AutoPickup extends SequentialCommandGroup {
                     // new PrintCommand("Auto pickup running").repeatedly(),
                     scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
                     new SequentialCommandGroup(
-                        superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withDeadline(new WaitCommand(1)),
+                        superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withTimeout(1.25),
                         superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
                     ),
                     new SequentialCommandGroup(
@@ -94,7 +93,7 @@ public class AutoPickup extends SequentialCommandGroup {
                         )
                         // new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight())
                     ).withName("Pathfinding to station"),
-                    new WaitCommand(1),
+                    new WaitCommand(0.5),
                     new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0)))
                 ).withDeadline(
                     new WaitUntilCommand(() -> superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()).getAsBoolean())
