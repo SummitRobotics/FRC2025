@@ -102,4 +102,10 @@ public class Constants {
             kA = 0,
             MAX_ROTATIONS = 0;
     }
+
+    public static class LED {
+        public static final int
+            PWM_PORT = 0,
+            LED_COUNT = 27;
+    }
 }

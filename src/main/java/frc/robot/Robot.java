@@ -4,22 +4,12 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Centimeters;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Second;
-
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.LEDPattern;
-import edu.wpi.first.wpilibj.LEDPattern.GradientType;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj.AddressableLED;
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
 @Logged
 public class Robot extends TimedRobot {
@@ -27,17 +17,6 @@ public class Robot extends TimedRobot {
 
   private final RobotContainer m_robotContainer;
 
-  // TEMP: Set up LED
-  // private final AddressableLED m_frontLed;
-  // private final AddressableLEDBuffer m_frontLedBuffer;
-  // private final AddressableLED m_leftLed;
-  // private final AddressableLEDBuffer m_leftLedBuffer;
-  private final AddressableLED m_rightLed;
-  private final AddressableLEDBuffer m_rightLedBuffer;
-  private static final Distance kLedSpacing = Meters.of(1 / 120.0);
-  private final LEDPattern m_scrollPattern = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, Color.kGreen);
-  LEDPattern absolutePattern = m_scrollPattern.scrollAtAbsoluteSpeed(Centimeters.per(Second).of(22), kLedSpacing);
-  
   public Robot() {
     // WPILib logging
     // See https://docs.wpilib.org/en/stable/docs/software/telemetry/robot-telemetry-with-annotations.html
@@ -45,41 +24,12 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     Epilogue.bind(this);
     m_robotContainer = new RobotContainer();
- 
-    /*
-    // TEMP: Set up LED
-    m_frontLed = new AddressableLED(0);
-    m_frontLedBuffer = new AddressableLEDBuffer(13);
-    m_frontLed.setLength(m_frontLedBuffer.getLength());
-    LEDPattern red = LEDPattern.solid(Color.kGreen);
-    red.applyTo(m_frontLedBuffer);
-    m_frontLed.setData(m_frontLedBuffer);
-    m_frontLed.start();
-    
-    m_leftLed = new AddressableLED(1);
-    m_leftLedBuffer = new AddressableLEDBuffer(27);
-    m_leftLed.setLength(m_leftLedBuffer.getLength());
-    m_leftLed.setData(m_leftLedBuffer);
-    m_leftLed.start();
-    */
-
-    m_rightLed = new AddressableLED(2);
-    m_rightLedBuffer = new AddressableLEDBuffer(27);
-    m_rightLed.setLength(m_rightLedBuffer.getLength());
-    m_rightLed.setData(m_rightLedBuffer);
-    m_rightLed.start();
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
     m_robotContainer.robotPeriodic();
-    // absolutePattern.applyTo(m_leftLedBuffer);
-    absolutePattern.applyTo(m_rightLedBuffer);
-    // m_leftLed.setData(m_leftLedBuffer);
-    m_rightLed.setData(m_rightLedBuffer);
-
-
   }
 
   @Override

@@ -44,6 +44,7 @@ import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.oi.CommandControllerWrapper;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
@@ -75,7 +76,8 @@ public class RobotContainer {
     @Logged(name = "Superstructure")
     public final Superstructure superstructure = new Superstructure(buttonBox);
     public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
-    
+    public final LEDSubsystem ledSubsystem = new LEDSubsystem(Constants.LED.PWM_PORT, Constants.LED.LED_COUNT);
+
     // Auto-align chooser
     // private final SendableChooser<Command> autoChooser;
     private final SendableChooser<SuperstructurePreset> lChooser;
@@ -154,11 +156,11 @@ public class RobotContainer {
         if (usePS5Controllers) {
             driverController = new CommandControllerWrapper(new CommandPS5Controller(Constants.OI.DRIVER_PS5));
             gunnerController = new CommandControllerWrapper(new CommandPS5Controller(Constants.OI.GUNNER_PS5));
-            System.out.println("Controller Type: PS5");            
+            System.out.println("Controller Type: PS5");
         } else {
             driverController = new CommandControllerWrapper(new CommandXboxController(Constants.OI.DRIVER_XBOX));
             gunnerController = new CommandControllerWrapper(new CommandXboxController(Constants.OI.GUNNER_XBOX));
-            System.out.println("Controller Type: Xbox");            
+            System.out.println("Controller Type: Xbox");
         }
 
         // autoChooser = AutoBuilder.buildAutoChooser("Tests");
@@ -195,7 +197,7 @@ public class RobotContainer {
         scrubChooser.onChange((SuperstructurePreset scrub) -> {
             driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrub)));
         });
-        
+
         // Combinatoric auto-chooser thing
         autoCoralStationChoice = new SendableChooser<CoralStationSide>();
         autoSegmentChoice = new SendableChooser<AutoSegment>();
