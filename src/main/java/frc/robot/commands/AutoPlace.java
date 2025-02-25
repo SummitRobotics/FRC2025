@@ -155,8 +155,8 @@ public class AutoPlace extends SequentialCommandGroup {
             superstructure.setPreset(node.l)
                 .until(superstructure::atSetpoint)
                 .withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
-            // Wait half a second if going to L4 (to allow the superstructure to settle)
-            new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.5 : 0),
+            // Wait some time if going to L3/L4 (to allow the wrist to achieve pose)
+            new WaitCommand((node.l == SuperstructurePreset.L3) || (node.l == SuperstructurePreset.L4) ? 0.5 : 0),
             // Shoot out the coral
             new ParallelDeadlineGroup(
                 // Rum until the shoot sensors are cleared, or for a timeout if going to L1
@@ -184,7 +184,7 @@ public class AutoPlace extends SequentialCommandGroup {
             superstructure.setPreset(node.scrub)
                 .until(superstructure::atSetpoint)
                 .withDeadline(new WaitCommand(0.5)),
-            // Wait some time if going to L4 (to allow the superstructure to settle)
+            // Wait some time if going to L4 (to allow the superstructure to settle?)
             new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.5 : 0),
             // Drive the scrubber arms up until timeout
             scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS).withDeadline(new WaitCommand(0.5))
