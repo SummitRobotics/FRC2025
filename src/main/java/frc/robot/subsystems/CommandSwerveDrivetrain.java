@@ -15,6 +15,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -220,11 +221,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
 
         // Seed orientation for MT2
-        // if (!DriverStation.getAlliance().isPresent() || DriverStation.getAlliance().get() == Alliance.Blue) {
-            // getPigeon2().setYaw(180);
-        // } else {
-            getPigeon2().setYaw(0);
-        // }
+        // getPigeon2().setYaw(180);
     }
 
     /**
@@ -268,12 +265,21 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
          * Otherwise, only check and apply the operator perspective if the DS is disabled.
          * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
          */
-        if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
+        if (!m_hasAppliedOperatorPerspective/*|| DriverStation.isDisabled()*/) {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
                 setOperatorPerspectiveForward(
                     allianceColor == Alliance.Red
                         ? kRedAlliancePerspectiveRotation
                         : kBlueAlliancePerspectiveRotation
+                );
+
+                resetPose(
+                    new Pose2d(0, 0,
+                    Rotation2d.fromDegrees(
+                        allianceColor == Alliance.Red
+                            ? 0
+                            : 180
+                    ))
                 );
                 m_hasAppliedOperatorPerspective = true;
             });

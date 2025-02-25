@@ -300,7 +300,7 @@ public class RobotContainer {
             autoChooser.addOption(
                 "Predefined Right",
                 new SequentialCommandGroup(
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.THREE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE)),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceRightA"),
                     new PrintCommand("Finished segment 1"),
                     new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceRightB"),
