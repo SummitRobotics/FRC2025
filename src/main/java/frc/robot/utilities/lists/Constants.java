@@ -6,7 +6,7 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public class Constants {
-    public static boolean DEBUG_LOG_ENABLED = false;
+    public static boolean DEBUG_LOG_ENABLED = true;
 
     public static final String
         RIO_BUS_NAME = "rio";
@@ -92,7 +92,8 @@ public class Constants {
 
     public static class Climb {
         public static final int
-            CLIMB_ID = 17;
+            CLIMB_ID = 17,
+            SENSOR_ID = 1;
         public static final double
             P = 6,
             I = 0.4,
@@ -102,7 +103,7 @@ public class Constants {
             kV = 1.2,
             kA = 0,
             MAX_ROTATIONS = 210,
-            BACK_ROTATIONS = -105,
+            BACK_ROTATIONS = 0,
             MAX_VELOCITY_IN = 30,
             MAX_ACCEL_IN = 60,
             MAX_VELOCITY_OUT = 200,

@@ -58,8 +58,8 @@ public class AutoPickup extends SequentialCommandGroup {
     public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side, String suppliedPathName) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
-                3.0 * 1.25, 4.0 * 1.25,
-                Units.degreesToRadians(270 * 1.25), Units.degreesToRadians(360 * 1.25));
+                3.0, 4.0,
+                Units.degreesToRadians(270), Units.degreesToRadians(360));
         // Load the station side paths from the path planner
         PathPlannerPath leftPath;
         PathPlannerPath rightPath;

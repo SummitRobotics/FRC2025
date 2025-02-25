@@ -80,8 +80,8 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraints = new PathConstraints(
-            3.0 * 1.25, 4.0 * 1.25,
-            Units.degreesToRadians(270 * 1.25), Units.degreesToRadians(360 * 1.25));
+            3.0, 4.0,
+            Units.degreesToRadians(270), Units.degreesToRadians(360));
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
         this(drivetrain, superstructure, scrubber, node, "");
@@ -201,9 +201,9 @@ public class AutoPlace extends SequentialCommandGroup {
                 // Scrub an algea
                 addCommands(scrub);
             }
-            
+
             // addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint).withTimeout(0.5));
-            
+
             // Back up slightly while stowing the superstructure for a period of time
             Timer timer = new Timer();
             addCommands(

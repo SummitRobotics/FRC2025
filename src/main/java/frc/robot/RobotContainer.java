@@ -11,8 +11,6 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.path.PathPlannerPath;
-
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -82,7 +80,7 @@ public class RobotContainer {
     public final Climb climb = new Climb();
 
     // Auto-align chooser
-    // private final SendableChooser<Command> autoChooser;
+    private final SendableChooser<Command> autoChooser;
     private final SendableChooser<SuperstructurePreset> lChooser;
     private final SendableChooser<HexSide> hexSideChooser;
     private final SendableChooser<Side> leftRightChooser;
@@ -166,7 +164,8 @@ public class RobotContainer {
             System.out.println("Controller Type: Xbox");
         }
 
-        // autoChooser = AutoBuilder.buildAutoChooser("Tests");
+        autoChooser = new SendableChooser<Command>();
+        autoChooser.setDefaultOption("Do Nothing", new InstantCommand(() -> {}));
         lChooser = new SendableChooser<SuperstructurePreset>();
         hexSideChooser = new SendableChooser<HexSide>();
         leftRightChooser = new SendableChooser<Side>();
@@ -228,6 +227,17 @@ public class RobotContainer {
                     break;
                 }
             }
+            autoChooser.addOption("Combination Auto", new SequentialCommandGroup(
+                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
+                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
+                new PrintCommand("Finished segment 1"),
+                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
+                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
+                new PrintCommand("Finished segment 2"),
+                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
+                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree),
+                new PrintCommand("Finished segment 3")
+            ));
         }).ignoringDisable(true);
         SmartDashboard.putData("Auto Status", new Sendable() {
             @Override
@@ -237,17 +247,18 @@ public class RobotContainer {
                 builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
             }
         });
-        // SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
-        // SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
-        // SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
+        SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
+        SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
+        SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
-        // SmartDashboard.putData("Auto Mode", autoChooser);
+        SmartDashboard.putData("Auto Chooser", autoChooser);
         if (Constants.DEBUG_LOG_ENABLED) {
             SmartDashboard.putData("Superstructure", superstructure);
             SmartDashboard.putData("Drivetrain", drivetrain);
+            SmartDashboard.putData("Climb", climb);
         }
         // SmartDashboard.putData("One Left", selectOneLeft);
         // SmartDashboard.putData("One Right", selectOneRight);
@@ -270,6 +281,25 @@ public class RobotContainer {
         SmartDashboard.putData("Extend", climb.extend());
         SmartDashboard.putData("Lift", climb.lift());
         SmartDashboard.putData("Retract", climb.retract());
+        // Add further auto options (may be best moved to a separate file)
+        try {
+            autoChooser.addOption(
+                "Predefined",
+                new SequentialCommandGroup(
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceA"),
+                    new PrintCommand("Finished segment 1"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceB"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceC"),
+                    new PrintCommand("Finished segment 2"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceD"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceE"),
+                    new PrintCommand("Finished segment 3")
+                )
+            );
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
         configureBindings();
         CameraServer.startAutomaticCapture();
         FollowPathCommand.warmupCommand().schedule();
@@ -368,33 +398,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        try {
-            return
-                new SequentialCommandGroup(
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceA"),
-                    new PrintCommand("Finished segment 1"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceB"),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceC"),
-                    new PrintCommand("Finished segment 2"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceD"),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceE"),
-                    new PrintCommand("Finished segment 3")
-                );
-        } catch (Exception e) {
-            throw new RuntimeException();
-        }
-        // new SequentialCommandGroup(
-            // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
-            // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
-            // new PrintCommand("Finished segment 1"),
-            // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
-            // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
-            // new PrintCommand("Finished segment 2"),
-            // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
-            // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree),
-            // new PrintCommand("Finished segment 3")
-        // );
+        return autoChooser.getSelected();
     }
 
     public void simulationPeriodic() {
