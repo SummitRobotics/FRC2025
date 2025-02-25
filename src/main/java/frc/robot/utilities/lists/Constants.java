@@ -6,7 +6,7 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public class Constants {
-    public static boolean DEBUG_LOG_ENABLED = true;
+    public static boolean DEBUG_LOG_ENABLED = false;
 
     public static final String
         RIO_BUS_NAME = "rio";

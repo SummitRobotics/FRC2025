@@ -238,10 +238,10 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
-        state = preset;
-        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);//.alongWith(new InstantCommand(() -> {
+        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false).alongWith(new InstantCommand(() -> {
+            state = preset;
             // System.out.println("State:" + getState().description);
-        // }).repeatedly());
+        }).repeatedly());
     }
 
     // Use sensors to automatically hold the note in the middle
