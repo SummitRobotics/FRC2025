@@ -216,6 +216,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     private Command set(DoubleSupplier elevatorRotations, DoubleSupplier pivotRotations, DoubleSupplier leftBelt, DoubleSupplier rightBelt, boolean isManual) {
+        if (isManual) state = SuperstructurePreset.MANUAL_OVERRIDE;
         return this.run(() -> {
 
             // Do not collide mechanisms
@@ -229,7 +230,6 @@ public class Superstructure extends SubsystemBase {
             setPivot(elevatorSafe ? pivotRotations.getAsDouble() : SuperstructurePreset.STOW_UPPER.pivotRotations);
             beltLeft.set(leftBelt.getAsDouble());
             beltRight.set(rightBelt.getAsDouble());
-            if (isManual) state = SuperstructurePreset.MANUAL_OVERRIDE;
         });
     }
 
@@ -238,10 +238,10 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command setPresetWithBeltOverride(SuperstructurePreset preset, DoubleSupplier leftBelt, DoubleSupplier rightBelt) {
-        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false).alongWith(new InstantCommand(() -> {
-            state = preset;
+        state = preset;
+        return set(() -> preset.elevatorRotations, () -> preset.pivotRotations, leftBelt, rightBelt, false);//.alongWith(new InstantCommand(() -> {
             // System.out.println("State:" + getState().description);
-        }).repeatedly());
+        // }).repeatedly());
     }
 
     // Use sensors to automatically hold the note in the middle

@@ -7,31 +7,31 @@
         {
           "type": "path",
           "data": {
-            "pathName": "ThreePieceA"
+            "pathName": "ThreePieceLeftA"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "ThreePieceB"
+            "pathName": "ThreePieceLeftB"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "ThreePieceC"
+            "pathName": "ThreePieceLeftC"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "ThreePieceD"
+            "pathName": "ThreePieceLeftD"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "ThreePieceE"
+            "pathName": "ThreePieceLeftE"
           }
         }
       ]

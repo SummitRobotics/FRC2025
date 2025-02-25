@@ -89,7 +89,7 @@ public class RobotContainer {
     // Auto
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
     private final SendableChooser<AutoSegment> autoSegmentChoice;
-    private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
+    private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE); 
     private CoralStationSide autoStationOne = CoralStationSide.LEFT;
     private Node autoNodeTwo = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
@@ -284,16 +284,30 @@ public class RobotContainer {
         // Add further auto options (may be best moved to a separate file)
         try {
             autoChooser.addOption(
-                "Predefined",
+                "Predefined Left",
+                new SequentialCommandGroup(
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE)),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceLeftA"),
+                    new PrintCommand("Finished segment 1"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceLeftB"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceLeftC"),
+                    new PrintCommand("Finished segment 2"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceLeftD"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceLeftE"),
+                    new PrintCommand("Finished segment 3")
+                )
+            );
+            autoChooser.addOption(
+                "Predefined Right",
                 new SequentialCommandGroup(
                     new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceA"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceRightA"),
                     new PrintCommand("Finished segment 1"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceB"),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceC"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceRightB"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceRightC"),
                     new PrintCommand("Finished segment 2"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceD"),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceE"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceRightD"),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceRightE"),
                     new PrintCommand("Finished segment 3")
                 )
             );

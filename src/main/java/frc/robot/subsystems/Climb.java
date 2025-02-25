@@ -36,7 +36,7 @@ public class Climb extends SubsystemBase {
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Climb.MAX_ROTATIONS;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Climb.BACK_ROTATIONS;
         config.MotionMagic
             .withMotionMagicCruiseVelocity(Constants.Climb.MAX_VELOCITY_OUT)
             .withMotionMagicAcceleration(Constants.Climb.MAX_ACCEL_OUT);
@@ -65,14 +65,14 @@ public class Climb extends SubsystemBase {
     }
 
     public Command lift() {
-        return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN)
-            .until(switchTriggered()::getAsBoolean)
+        return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT)
+            //.until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }
 
     public Command retract() {
         return setWithMotionProfile(() -> 0, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT)
-            .until(switchTriggered()::getAsBoolean)
+            //.until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }
 
