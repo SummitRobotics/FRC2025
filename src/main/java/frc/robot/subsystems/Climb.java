@@ -66,18 +66,18 @@ public class Climb extends SubsystemBase {
 
     public Command lift() {
         return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT)
-            //.until(switchTriggered()::getAsBoolean)
+            .until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }
 
     public Command retract() {
         return setWithMotionProfile(() -> 0, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT)
-            //.until(switchTriggered()::getAsBoolean)
+            .until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }
 
     public Trigger switchTriggered() {
-        return new Trigger(() -> limitSwitch.get());
+        return new Trigger(limitSwitch::get);
     }
 
     @Override

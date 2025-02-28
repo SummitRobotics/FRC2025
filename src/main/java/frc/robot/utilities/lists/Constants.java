@@ -93,7 +93,7 @@ public class Constants {
     public static class Climb {
         public static final int
             CLIMB_ID = 17,
-            SENSOR_ID = 1;
+            SENSOR_ID = 0;
         public static final double
             P = 6,
             I = 0.4,
@@ -102,8 +102,8 @@ public class Constants {
             kS = 0,
             kV = 1.2,
             kA = 0,
-            MAX_ROTATIONS = 196,
-            BACK_ROTATIONS = -14.5,
+            MAX_ROTATIONS = 210,
+            BACK_ROTATIONS = -17.5,
             MAX_VELOCITY_IN = 30,
             MAX_ACCEL_IN = 60,
             MAX_VELOCITY_OUT = 200,

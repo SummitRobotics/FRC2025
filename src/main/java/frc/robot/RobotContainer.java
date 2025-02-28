@@ -19,6 +19,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -95,6 +96,9 @@ public class RobotContainer {
     private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
     private Node autoNodeThree = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationThree = CoralStationSide.LEFT;
+    private Timer flipUpTimer = new Timer();
+    private SendableChooser<Boolean> pushOverLine = new SendableChooser<Boolean>();
+    private boolean goOverLine = false;
 
     // Button-based node chooser
     // private Side leftRight = Side.LEFT;
@@ -186,6 +190,8 @@ public class RobotContainer {
         scrubChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
         scrubChooser.addOption("Low", SuperstructurePreset.STOW_UPPER);
         scrubChooser.addOption("High", SuperstructurePreset.L3_SCRUB);
+        pushOverLine.setDefaultOption("No", false);
+        pushOverLine.addOption("Yes", true);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
         lChooser.onChange((SuperstructurePreset l) -> {
             driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
@@ -205,6 +211,7 @@ public class RobotContainer {
         autoSegmentChoice = new SendableChooser<AutoSegment>();
         autoCoralStationChoice.setDefaultOption("Left", CoralStationSide.LEFT);
         autoCoralStationChoice.addOption("Right", CoralStationSide.RIGHT);
+        autoCoralStationChoice.addOption("None", CoralStationSide.NONE);
         autoSegmentChoice.setDefaultOption("Do First", AutoSegment.DO_FIRST);
         autoSegmentChoice.addOption("Do Second", AutoSegment.DO_SECOND);
         autoSegmentChoice.addOption("Do Third", AutoSegment.DO_THIRD);
@@ -228,6 +235,7 @@ public class RobotContainer {
                 }
             }
             autoChooser.addOption("Combination Auto", new SequentialCommandGroup(
+                // new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withTimeout(0.25),
                 new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
                 new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
                 new PrintCommand("Finished segment 1"),
@@ -242,6 +250,7 @@ public class RobotContainer {
         SmartDashboard.putData("Auto Status", new Sendable() {
             @Override
             public void initSendable(SendableBuilder builder) {
+                // builder.addStringProperty("Push over line", )
                 builder.addStringProperty("Segment 1", () -> autoNodeOne.toString() + ", Coral Station: " + autoStationOne.pathName, null);
                 builder.addStringProperty("Segment 2", () -> autoNodeTwo.toString() + ", Coral Station: " + autoStationTwo.pathName, null);
                 builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
@@ -280,19 +289,19 @@ public class RobotContainer {
         // Climb
         SmartDashboard.putData("Extend", climb.extend());
         SmartDashboard.putData("Lift", climb.lift());
-        SmartDashboard.putData("Retract", climb.retract());
+        // SmartDashboard.putData("Retract", climb.retract());
         // Add further auto options (may be best moved to a separate file)
         try {
             autoChooser.addOption(
                 "Predefined Left",
                 new SequentialCommandGroup(
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE)),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.L3_SCRUB)),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceLeftA"),
                     new PrintCommand("Finished segment 1"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceLeftB"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.STOW_UPPER), "ThreePieceLeftB"),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceLeftC"),
                     new PrintCommand("Finished segment 2"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceLeftD"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftD"),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceLeftE"),
                     new PrintCommand("Finished segment 3")
                 )
@@ -300,13 +309,13 @@ public class RobotContainer {
             autoChooser.addOption(
                 "Predefined Right",
                 new SequentialCommandGroup(
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.THREE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE)),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.THREE, Side.LEFT, SuperstructurePreset.L3_SCRUB)),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne, "ThreePieceRightA"),
                     new PrintCommand("Finished segment 1"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo, "ThreePieceRightB"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.RIGHT, SuperstructurePreset.STOW_UPPER), "ThreePieceRightB"),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo, "ThreePieceRightC"),
                     new PrintCommand("Finished segment 2"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree, "ThreePieceRightD"),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightD"),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree, "ThreePieceRightE"),
                     new PrintCommand("Finished segment 3")
                 )
@@ -401,13 +410,20 @@ public class RobotContainer {
         // Put upward after receive
         new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
             .and(superstructure.getCoralSensorIntake())
+            // .and(superstructure.getCoralSensorPlace())
+            .and(() -> !DriverStation.isAutonomous())
+            .onTrue(new InstantCommand(flipUpTimer::restart));
+        new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
+            .and(superstructure.getCoralSensorIntake())
             .and(superstructure.getCoralSensorPlace())
             .and(() -> !DriverStation.isAutonomous())
+            .and(() -> flipUpTimer.hasElapsed(1))
+            .and(driverController.rightBumper().negate())
             .onTrue(
-                new SequentialCommandGroup(
-                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withTimeout(0.5),
-                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
-                )
+                // new SequentialCommandGroup(
+                    // superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withTimeout(0.75),
+                superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
+                // )
             );
     }
 
