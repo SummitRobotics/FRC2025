@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -97,8 +98,8 @@ public class RobotContainer {
     private Node autoNodeThree = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationThree = CoralStationSide.LEFT;
     private Timer flipUpTimer = new Timer();
-    private SendableChooser<Boolean> pushOverLine = new SendableChooser<Boolean>();
-    private boolean goOverLine = false;
+    private SendableChooser<Boolean> pushOverLineChooser = new SendableChooser<Boolean>();
+    private boolean pushOverLine = false;
 
     // Button-based node chooser
     // private Side leftRight = Side.LEFT;
@@ -190,8 +191,8 @@ public class RobotContainer {
         scrubChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
         scrubChooser.addOption("Low", SuperstructurePreset.STOW_UPPER);
         scrubChooser.addOption("High", SuperstructurePreset.L3_SCRUB);
-        pushOverLine.setDefaultOption("No", false);
-        pushOverLine.addOption("Yes", true);
+        pushOverLineChooser.setDefaultOption("No", false);
+        pushOverLineChooser.addOption("Yes", true);
         // These weren't changing the bound command properly before this got added, so it seems like the rebinds are necessary.
         lChooser.onChange((SuperstructurePreset l) -> {
             driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected())));
@@ -217,6 +218,7 @@ public class RobotContainer {
         autoSegmentChoice.addOption("Do Third", AutoSegment.DO_THIRD);
         WrapperCommand updateAutoChoice = new InstantCommand(() -> {
             Node result = new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected());
+            pushOverLine = pushOverLineChooser.getSelected();
             switch (autoSegmentChoice.getSelected()) {
                 case DO_FIRST: {
                     autoNodeOne = result;
@@ -235,7 +237,12 @@ public class RobotContainer {
                 }
             }
             autoChooser.addOption("Combination Auto", new SequentialCommandGroup(
-                // new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withTimeout(0.25),
+                // For getting move points in auto by shoving a positioned allied team backwards over the line, optionally
+                new ConditionalCommand(
+                    new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withTimeout(0.25),
+                    new InstantCommand(() -> {}),
+                    () -> pushOverLine
+                ),
                 new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
                 new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
                 new PrintCommand("Finished segment 1"),
@@ -250,7 +257,7 @@ public class RobotContainer {
         SmartDashboard.putData("Auto Status", new Sendable() {
             @Override
             public void initSendable(SendableBuilder builder) {
-                // builder.addStringProperty("Push over line", )
+                builder.addStringProperty("Push Over Line", () -> pushOverLine ? "Yes" : "No", null);
                 builder.addStringProperty("Segment 1", () -> autoNodeOne.toString() + ", Coral Station: " + autoStationOne.pathName, null);
                 builder.addStringProperty("Segment 2", () -> autoNodeTwo.toString() + ", Coral Station: " + autoStationTwo.pathName, null);
                 builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
@@ -264,6 +271,7 @@ public class RobotContainer {
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
         SmartDashboard.putData("Auto Chooser", autoChooser);
+        SmartDashboard.putData("Push Over Line Chooser", pushOverLineChooser);
         if (Constants.DEBUG_LOG_ENABLED) {
             SmartDashboard.putData("Superstructure", superstructure);
             SmartDashboard.putData("Drivetrain", drivetrain);
@@ -289,7 +297,7 @@ public class RobotContainer {
         // Climb
         SmartDashboard.putData("Extend", climb.extend());
         SmartDashboard.putData("Lift", climb.lift());
-        // SmartDashboard.putData("Retract", climb.retract());
+        SmartDashboard.putData("Retract", climb.retract());
         // Add further auto options (may be best moved to a separate file)
         try {
             autoChooser.addOption(
