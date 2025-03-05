@@ -97,7 +97,7 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraints = new PathConstraints(
-            3.0, 4.0,
+            1.5, 2.0,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {

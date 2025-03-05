@@ -2,7 +2,6 @@ package frc.robot.commands;
 
 import java.util.function.Supplier;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -14,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
@@ -92,7 +90,6 @@ public class AutoPickup extends SequentialCommandGroup {
                 new ConditionalCommand(
                     // Perform the auto pickup sequence until the coral sensor is triggered
                     new ParallelCommandGroup(
-                        // new PrintCommand("Auto pickup running").repeatedly(),
                         // Stow the scrubber
                         scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
                         // Move the superstructure to the stow position for some time, then to receive position; all while driving the coral intake
@@ -100,22 +97,16 @@ public class AutoPickup extends SequentialCommandGroup {
                             superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withTimeout(1.25),
                             superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
                         ),
-                        // Drive to the station utnil the coral sensor is triggered
-                        new SequentialCommandGroup(
-                            // Follow the suppplied path if given, otherwise pathfind and then follow the left or right path
+                        // Drive to the station until the coral sensor is triggered
+                        // Follow the suppplied path if given, otherwise pathfind and then follow the left or right path
+                        new ConditionalCommand(
                             new ConditionalCommand(
-                                new ConditionalCommand(
-                                    AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
-                                    AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
-                                    () -> side.get() == CoralStationSide.LEFT
-                                ),
-                                AutoBuilder.followPath(suppliedPath),
-                                () -> suppliedPathName.isEmpty()
+                                AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
+                                AutoBuilder.pathfindThenFollowPath(rightPath, constraints),
+                                () -> side.get() == CoralStationSide.LEFT
                             ),
-                            // Path may end with a target velocity, to drive robot into station, do so for a short time
-                            new WaitCommand(0.5),
-                            // Stop the robot from moving into station, the robot will move backwards after coral intake so OK if never reach this
-                            new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0)))
+                            AutoBuilder.followPath(suppliedPath),
+                            () -> suppliedPathName.isEmpty()
                         )
                     ).withDeadline(
                         // Wait until the coral intake sensor is triggered (the coral place sensor may not be triggered)
