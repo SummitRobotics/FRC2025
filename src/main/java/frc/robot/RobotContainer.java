@@ -91,7 +91,7 @@ public class RobotContainer {
     // Auto
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
     private final SendableChooser<AutoSegment> autoSegmentChoice;
-    private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE); 
+    private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationOne = CoralStationSide.LEFT;
     private Node autoNodeTwo = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
     private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
@@ -100,6 +100,12 @@ public class RobotContainer {
     private Timer flipUpTimer = new Timer();
     private SendableChooser<Boolean> pushOverLineChooser = new SendableChooser<Boolean>();
     private boolean pushOverLine = false;
+
+    // Class members to add at the top of RobotContainer class
+    private final Timer cycleTimer = new Timer();
+    private int cycleCount = 0;
+    private boolean timerRunning = false;
+    private double lastCycleTime = 0.0;
 
     // Button-based node chooser
     // private Side leftRight = Side.LEFT;
@@ -337,11 +343,18 @@ public class RobotContainer {
         PathfindingCommand.warmupCommand().schedule();
     }
 
-    private void updateFMSInfo()
+    private void updateDashboard()
     {
         // Fetch info from the DriverStation and update the FMSInfo table
         double matchTime = DriverStation.getMatchTime();
         NetworkTableInstance.getDefault().getTable("FMSInfo").getEntry("MatchTime").setDouble(matchTime);
+
+        // Update current cycle time if running
+        if (timerRunning) {
+            SmartDashboard.putNumber("Current Cycle Time", cycleTimer.get());
+        }
+        SmartDashboard.putNumber("Last Cycle Time", lastCycleTime);
+        SmartDashboard.putNumber("Cycle Count", cycleCount);
     }
 
     private void configureBindings() {
@@ -433,6 +446,30 @@ public class RobotContainer {
                 superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
                 // )
             );
+
+        // Cycle timer
+        new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
+            .and(superstructure.getCoralSensorIntake())
+            .and(superstructure.getCoralSensorPlace())
+            .onTrue(new InstantCommand(() -> {
+                if (!timerRunning) {
+                    // First cycle - start the timer
+                    cycleTimer.reset();
+                    cycleTimer.start();
+                    timerRunning = true;
+                } else {
+                    // Complete a cycle and immediately start timing the next one
+                    lastCycleTime = cycleTimer.get();
+                    cycleCount++;
+                    cycleTimer.reset(); // Reset to start timing the next cycle
+                    // Keep timerRunning true for continuous timing
+                }
+
+                // Update SmartDashboard
+                SmartDashboard.putNumber("Current Cycle Time", cycleTimer.get());
+                SmartDashboard.putNumber("Last Cycle Time", lastCycleTime);
+                SmartDashboard.putNumber("Cycle Count", cycleCount);
+            }));
     }
 
     public Command getAutonomousCommand() {
@@ -484,7 +521,7 @@ public class RobotContainer {
             // field.getObject("PathTrajectory").setPoses(activePath);
         // }
 
-        // TODO: Check if the FMSInfo is being published via the FMS in real matches
-        updateFMSInfo();
+        // Update the SmartDashboard
+        updateDashboard();
     }
 }
