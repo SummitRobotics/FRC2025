@@ -7,8 +7,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 /**
  * CommandControllerWrapper is a wrapper class that abstracts the differences between
  * CommandXboxController and CommandPS5Controller, using XBox naming conventions.
- *
- * Note: The axes for the PS5 controller are inverted compared to the Xbox controller.
  */
 public class CommandControllerWrapper {
     private final CommandXboxController xboxController;
@@ -65,19 +63,19 @@ public class CommandControllerWrapper {
     }
 
     public double getLeftX() {
-        return xboxController != null ? xboxController.getLeftX() : -ps5Controller.getLeftX();
+        return xboxController != null ? xboxController.getLeftX() : ps5Controller.getLeftX();
     }
 
     public double getLeftY() {
-        return xboxController != null ? xboxController.getLeftY() : -ps5Controller.getLeftY();
+        return xboxController != null ? xboxController.getLeftY() : ps5Controller.getLeftY();
     }
 
     public double getRightX() {
-        return xboxController != null ? xboxController.getRightX() : -ps5Controller.getRightX();
+        return xboxController != null ? xboxController.getRightX() : ps5Controller.getRightX();
     }
 
     public double getRightY() {
-        return xboxController != null ? xboxController.getRightY() : -ps5Controller.getRightY();
+        return xboxController != null ? xboxController.getRightY() : ps5Controller.getRightY();
     }
 
     // Add other methods as needed...

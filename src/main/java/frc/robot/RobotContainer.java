@@ -42,6 +42,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.oi.ButtonBox;
 import frc.robot.oi.ButtonBox.Button;
 import frc.robot.oi.CommandControllerWrapper;
+import frc.robot.oi.JoystickResponseCurve;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LEDSubsystem;
@@ -58,10 +59,34 @@ public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(.825).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
+    // #region driver_tuning
+    // Flag to enable/disable driver tuning
+    private static final boolean ENABLE_DRIVER_TUNING = false;
+
+    private double translationDeadband = 0.0; // 0% default deadband to match current behavior
+    private double rotationDeadband = 0.0; // 0% default deadband to match current behavior
+    private double curveScale = 2.0; // Shared between translation and rotation curves, used with exponential curve
+    private double dualRateBreakpoint = 0.5; // Shared between translation and rotation curves, used with dual rate curve
+
+    private double driveRequestTransDeadband = 0.1; // 10% of MaxSpeed to match current behavior
+    private double driveRequestRotDeadband = 0.1;   // 10% of MaxAngularRate to match current behavior
+
+    // Open-loop voltage and LINEAR curves to match current behavior
+    private DriveRequestType currentDriveRequestType = DriveRequestType.OpenLoopVoltage;
+    private JoystickResponseCurve.CurveType currentDriveCurveType = JoystickResponseCurve.CurveType.LINEAR;
+    private JoystickResponseCurve.CurveType currentRotationCurveType = JoystickResponseCurve.CurveType.LINEAR;
+
+    private final String DRIVER_TUNING_BASE_PATH = "DriverTuning/";
+    private final SendableChooser<DriveRequestType> driveRequestTypeChooser = new SendableChooser<>();
+    private final SendableChooser<JoystickResponseCurve.CurveType> driveCurveChooser = new SendableChooser<>();
+    private final SendableChooser<JoystickResponseCurve.CurveType> rotationCurveChooser = new SendableChooser<>();
+    // #endregion
+
     /* Setting up bindings for necessary control of the swerve drive platform */
-    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+    private SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+            .withDeadband(MaxSpeed * driveRequestTransDeadband)
+            .withRotationalDeadband(MaxAngularRate * driveRequestTransDeadband)
+            .withDriveRequestType(currentDriveRequestType);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -69,6 +94,12 @@ public class RobotContainer {
     private final CommandControllerWrapper driverController;
     private final CommandControllerWrapper gunnerController;
     private final ButtonBox buttonBox = new ButtonBox(Constants.OI.BUTTON_BOX);
+
+    // Response curves for joystick inputs
+    private JoystickResponseCurve driveCurve =
+        new JoystickResponseCurve(JoystickResponseCurve.CurveType.LINEAR, translationDeadband);
+    private JoystickResponseCurve rotationCurve =
+        new JoystickResponseCurve(JoystickResponseCurve.CurveType.LINEAR, rotationDeadband);
 
     // Subsystems
     @Logged(name = "Drivetrain")
@@ -113,7 +144,6 @@ public class RobotContainer {
 
     // Field2d object for simulation
     private final Field2d field = new Field2d();
-
 
     public RobotContainer() {
         // Check if PS5 controllers should be used
@@ -270,6 +300,7 @@ public class RobotContainer {
         CameraServer.startAutomaticCapture();
         FollowPathCommand.warmupCommand().schedule();
         PathfindingCommand.warmupCommand().schedule();
+        initializeDashboardTuning();
     }
 
     private void updateDashboard()
@@ -292,12 +323,22 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-driverController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-driverController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-driverController.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
+            drivetrain.applyRequest(() -> {
+                // Get joystick inputs
+                double leftY = -driverController.getLeftY(); // Drive forward with negative Y (Joystick UP)
+                double leftX = -driverController.getLeftX(); // Drive left with negative X (Joystick LEFT)
+                double rightX = -driverController.getRightX(); // Drive counterclockwise with negative X (Joystick LEFT)
+
+                // Apply response curves
+                leftY = driveCurve.apply(leftY);
+                leftX = driveCurve.apply(leftX);
+                rightX = rotationCurve.apply(rightX);
+
+                // Scale to m/s and rad/s and apply to the swerve request
+                return drive.withVelocityX(leftY * MaxSpeed)
+                            .withVelocityY(leftX * MaxSpeed)
+                            .withRotationalRate(rightX * MaxAngularRate);
+            })
         );
         superstructure.setDefaultCommand(
             superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
@@ -382,14 +423,14 @@ public class RobotContainer {
                 } else {
                     lastCycleTime = cycleTimer.get();
                     cycleCount++;
-                    
+
                     // Update running sum and average
                     totalCycleTime += lastCycleTime;
                     averageCycleTime = totalCycleTime / cycleCount;
-                    
+
                     // Update median efficiently
                     addToMedianCalculation(lastCycleTime);
-                    
+
                     cycleTimer.reset(); // Reset for next cycle
                 }
             }));
@@ -477,7 +518,142 @@ public class RobotContainer {
             // field.getObject("PathTrajectory").setPoses(activePath);
         // }
 
-        // Update the SmartDashboard
         updateDashboard();
+        updateDriveSettings();
+    }
+
+    /**
+     * Initialize SmartDashboard tuning parameters
+     */
+    private void initializeDashboardTuning() {
+        // Driver control tuning - only if enabled
+        if (ENABLE_DRIVER_TUNING) {
+            // Drive request type chooser
+            driveRequestTypeChooser.setDefaultOption("Open Loop Voltage", DriveRequestType.OpenLoopVoltage);
+            driveRequestTypeChooser.addOption("Velocity", DriveRequestType.Velocity);
+            SmartDashboard.putData(DRIVER_TUNING_BASE_PATH + "Drive Request Type", driveRequestTypeChooser);
+
+            // Drive curve chooser
+            for (JoystickResponseCurve.CurveType curveType : JoystickResponseCurve.CurveType.values()) {
+                if (curveType == JoystickResponseCurve.CurveType.LINEAR) {
+                    driveCurveChooser.setDefaultOption(curveType.name(), curveType);
+                } else {
+                    driveCurveChooser.addOption(curveType.name(), curveType);
+                }
+            }
+            SmartDashboard.putData(DRIVER_TUNING_BASE_PATH + "Drive Curve Type", driveCurveChooser);
+
+            // Rotation curve chooser
+            for (JoystickResponseCurve.CurveType curveType : JoystickResponseCurve.CurveType.values()) {
+                if (curveType == JoystickResponseCurve.CurveType.LINEAR) {
+                    rotationCurveChooser.setDefaultOption(curveType.name(), curveType);
+                } else {
+                    rotationCurveChooser.addOption(curveType.name(), curveType);
+                }
+            }
+            SmartDashboard.putData(DRIVER_TUNING_BASE_PATH + "Rotation Curve Type", rotationCurveChooser);
+
+            // Shared parameters for drive and rotation curves
+            SmartDashboard.putNumber(DRIVER_TUNING_BASE_PATH + "Curve Scale Factor", curveScale);
+            SmartDashboard.putNumber(DRIVER_TUNING_BASE_PATH + "Dual Rate Breakpoint", dualRateBreakpoint);
+
+            // JoystickResponseCurve deadbands
+            SmartDashboard.putNumber(DRIVER_TUNING_BASE_PATH + "Joystick Trans Deadband", translationDeadband);
+            SmartDashboard.putNumber(DRIVER_TUNING_BASE_PATH + "Joystick Rot Deadband", rotationDeadband);
+
+            // DriveRequest deadbands (physical units)
+            SmartDashboard.putNumber(DRIVER_TUNING_BASE_PATH + "Drive Request Trans Deadband", driveRequestTransDeadband);
+            SmartDashboard.putNumber(DRIVER_TUNING_BASE_PATH + "Drive Request Rot Deadband", driveRequestRotDeadband);
+        }
+    }
+
+    /**
+     * Update drive settings based on SmartDashboard values
+     */
+    public void updateDriveSettings() {
+        // Skip if tuning is disabled
+        if (!ENABLE_DRIVER_TUNING) {
+            return;
+        }
+
+        // Get values from dashboard
+        DriveRequestType requestType = driveRequestTypeChooser.getSelected();
+        JoystickResponseCurve.CurveType driveCurveType = driveCurveChooser.getSelected();
+        JoystickResponseCurve.CurveType rotationCurveType = rotationCurveChooser.getSelected();
+        double newCurveScale = SmartDashboard.getNumber(DRIVER_TUNING_BASE_PATH + "Curve Scale Factor", curveScale);
+        double newBreakpoint = SmartDashboard.getNumber(DRIVER_TUNING_BASE_PATH + "Dual Rate Breakpoint", dualRateBreakpoint);
+
+        // Get values from dashboard
+        double newJoystickTransDB = SmartDashboard.getNumber(DRIVER_TUNING_BASE_PATH + "Joystick Trans Deadband", translationDeadband);
+        double newJoystickRotDB = SmartDashboard.getNumber(DRIVER_TUNING_BASE_PATH + "Joystick Rot Deadband", rotationDeadband);
+        double newDriveTransDB = SmartDashboard.getNumber(DRIVER_TUNING_BASE_PATH + "Drive Request Trans Deadband", driveRequestTransDeadband);
+        double newDriveRotDB = SmartDashboard.getNumber(DRIVER_TUNING_BASE_PATH + "Drive Request Rot Deadband", driveRequestRotDeadband);
+
+        // Update drive request if type or deadbands changed
+        if (requestType != currentDriveRequestType ||
+            Math.abs(newDriveTransDB - driveRequestTransDeadband) > 0.001 ||
+            Math.abs(newDriveRotDB - driveRequestRotDeadband) > 0.001) {
+
+            drive = new SwerveRequest.FieldCentric()
+                .withDriveRequestType(requestType)
+                .withDeadband(MaxSpeed * newDriveTransDB)
+                .withRotationalDeadband(MaxAngularRate * newDriveRotDB);
+
+            currentDriveRequestType = requestType;
+            driveRequestTransDeadband = newDriveTransDB;
+            driveRequestRotDeadband = newDriveRotDB;
+        }
+
+        // Update drive request if type or deadbands changed
+        if (requestType != currentDriveRequestType ||
+            Math.abs(newDriveTransDB - driveRequestTransDeadband) > 0.001 ||
+            Math.abs(newDriveRotDB - driveRequestRotDeadband) > 0.001) {
+
+            drive = new SwerveRequest.FieldCentric()
+                .withDriveRequestType(requestType)
+                .withDeadband(MaxSpeed * newDriveTransDB)
+                .withRotationalDeadband(MaxAngularRate * newDriveRotDB);
+
+            currentDriveRequestType = requestType;
+            driveRequestTransDeadband = newDriveTransDB;
+            driveRequestRotDeadband = newDriveRotDB;
+        }
+
+        // Update drive curve if needed
+        if (driveCurveType != currentDriveCurveType ||
+            translationDeadband != newJoystickTransDB ||
+            curveScale != newCurveScale ||
+            dualRateBreakpoint != newBreakpoint) {
+
+            driveCurve = new JoystickResponseCurve(
+                driveCurveType,
+                newJoystickTransDB,
+                // NOTE: Following parameters are shared with rotation curve
+                newBreakpoint,
+                newCurveScale
+            );
+            currentDriveCurveType = driveCurveType;
+            translationDeadband = newJoystickTransDB;
+        }
+
+        // Update rotation curve if needed
+        if (rotationCurveType != currentRotationCurveType ||
+            rotationDeadband != newJoystickRotDB ||
+            curveScale != newCurveScale ||
+            dualRateBreakpoint != newBreakpoint) {
+
+            rotationCurve = new JoystickResponseCurve(
+                rotationCurveType,
+                newJoystickRotDB,
+                // NOTE: Following parameters are shared with drive curve
+                newBreakpoint,
+                newCurveScale
+            );
+            currentRotationCurveType = rotationCurveType;
+            rotationDeadband = newJoystickRotDB;
+        }
+        // Update shared parameters
+        curveScale = newCurveScale;
+        dualRateBreakpoint = newBreakpoint;
     }
 }
