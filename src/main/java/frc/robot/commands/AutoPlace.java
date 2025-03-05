@@ -1,16 +1,14 @@
 package frc.robot.commands;
 
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -22,6 +20,20 @@ import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.lists.Constants;
 
 public class AutoPlace extends SequentialCommandGroup {
+    // Ghost pointer positions to show which node is selected
+    public static final Pose2d
+        ONE_LEFT = new Pose2d(3.186, 4.194, Rotation2d.fromDegrees(0)),
+        ONE_RIGHT = new Pose2d(3.187, 3.866, Rotation2d.fromDegrees(0)),
+        TWO_LEFT = new Pose2d(3.693, 2.982, Rotation2d.fromDegrees(60)),
+        TWO_RIGHT = new Pose2d(3.982, 2.816, Rotation2d.fromDegrees(60)),
+        THREE_LEFT = new Pose2d(4.989, 2.818, Rotation2d.fromDegrees(120)),
+        THREE_RIGHT = new Pose2d(5.283, 2.986, Rotation2d.fromDegrees(120)),
+        FOUR_LEFT = new Pose2d(5.783, 3.863, Rotation2d.fromDegrees(180)),
+        FOUR_RIGHT = new Pose2d(5.781, 4.188, Rotation2d.fromDegrees(180)),
+        FIVE_LEFT = new Pose2d(5.264, 5.076, Rotation2d.fromDegrees(240)),
+        FIVE_RIGHT = new Pose2d(4.992, 5.235, Rotation2d.fromDegrees(240)),
+        SIX_LEFT = new Pose2d(3.973, 5.231, Rotation2d.fromDegrees(300)),
+        SIX_RIGHT = new Pose2d(3.697, 5.061, Rotation2d.fromDegrees(300));
 
     public enum HexSide {
         // Technically pathfindThenFollowPath makes manually putting in these waypoints unnecessary; I didn't know that at the time of copying them over.
@@ -37,18 +49,23 @@ public class AutoPlace extends SequentialCommandGroup {
         // FOUR_RED(new Pose2d(8.593 + 2.678, 4.058, Rotation2d.fromDegrees(0)), "4"),
         // FIVE_RED(new Pose2d(8.593 + 3.565, 2.457, Rotation2d.fromDegrees(60)), "5"),
         // SIX_RED(new Pose2d(8.593 + 5.414, 2.494, Rotation2d.fromDegrees(120)), "6");
-        ONE("1"),
-        TWO("2"),
-        THREE("3"),
-        FOUR("4"),
-        FIVE("5"),
-        SIX("6");
+        ONE("1", ONE_LEFT, ONE_RIGHT),
+        TWO("2", TWO_LEFT, TWO_RIGHT),
+        THREE("3", THREE_LEFT, THREE_RIGHT),
+        FOUR("4", FOUR_LEFT, FOUR_RIGHT),
+        FIVE("5", FIVE_LEFT, FIVE_RIGHT),
+        SIX("6", SIX_LEFT, SIX_RIGHT);
 
-        // public Pose2d waypoint;
+        public Pose2d leftPlace, rightPlace;
         public String name;
-        private HexSide(/*Pose2d waypoint,*/ String name) {
-            // this.waypoint = waypoint;
+        private HexSide(String name, Pose2d leftPlace, Pose2d rightPlace) {
             this.name = name;
+            this.rightPlace = rightPlace;
+            this.leftPlace = leftPlace;
+        }
+
+        public Pose2d getPlacePose(Side side) {
+            return side == Side.LEFT ? leftPlace : rightPlace;
         }
     }
 
@@ -80,7 +97,7 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraints = new PathConstraints(
-            3.0, 4.0,
+            1.5, 2.0,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
@@ -104,50 +121,21 @@ public class AutoPlace extends SequentialCommandGroup {
 
         // Command to move the robot to the desired position along a path, running until path is complete
         Command move = new ParallelDeadlineGroup(
-            // new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.SwerveDriveBrake())).repeatedly().withDeadline(new WaitCommand(0.3)),
-            // new ParallelDeadlineGroup(
-                // AutoBuilder.pathfindToPoseFlipped(path.getStartingHolonomicPose().get(), constraints),
-                // new ConditionalCommand(
-                    // superstructure.setPreset(node.l),
-                    // new ConditionalCommand(
-                        // superstructure.setPreset(SuperstructurePreset.L4_INTERMEDIATE),
-                        // new InstantCommand(() -> {}),
-                        // () -> node.l == SuperstructurePreset.L4 || node.l == SuperstructurePreset.L3
-                    // ),
-                    // () -> node.l == SuperstructurePreset.L2
-                // )
-            // ),
-            // new ParallelDeadlineGroup(
-                // AutoBuilder.followPath(path),
-                // superstructure.setPreset(
-                    // node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l
-                    // : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) ? node.scrub : SuperstructurePreset.STOW_UPPER
-                // )
-            // )
-
             // On the fly pathfinding to station, or follow the path if supplied
             new ConditionalCommand(
-                AutoBuilder.pathfindThenFollowPath(path, constraints),
+                AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraints),
                 AutoBuilder.followPath(path),
                 () -> suppliedPathName.isEmpty()
             ),
             // Move the superstructure into a safe position for moving
             new ConditionalCommand(
-                // If going to L1 or L2, set the superstructure to the desired position
+                // If going to L1, L2, or L3, set the superstructure to the desired position
                 superstructure.setPreset(node.l),
-                new ConditionalCommand(
-                    // If going to L3 or L4 then use L4 intermediate
-                    superstructure.setPreset(SuperstructurePreset.L4_INTERMEDIATE),
-                    // Otherwise manual or other unhandled condition
-                    new InstantCommand(() -> {}),
-                    () -> node.l == SuperstructurePreset.L3 || node.l == SuperstructurePreset.L4
-                ),
-                () -> node.l == SuperstructurePreset.L1 || node.l == SuperstructurePreset.L2
+                // If going to L4 then use L4 intermediate
+                superstructure.setPreset(SuperstructurePreset.L4_INTERMEDIATE),
+                () -> node.l != SuperstructurePreset.L4
             )
         );
-        // new EventTrigger("Align").onTrue(new InstantCommand(() -> CommandScheduler.getInstance().schedule(
-            // superstructure.setPreset(node.l != SuperstructurePreset.MANUAL_OVERRIDE ? node.l : (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE ? node.scrub : SuperstructurePreset.STOW_UPPER))
-        // )));
 
         // Command to move superstructure to the desired position and shoot the coral
         SequentialCommandGroup place = new SequentialCommandGroup(
@@ -201,40 +189,16 @@ public class AutoPlace extends SequentialCommandGroup {
                 // Scrub an algea
                 addCommands(scrub);
             }
-
-            // addCommands(superstructure.setPreset(SuperstructurePreset.STOW_UPPER).until(superstructure::atSetpoint).withTimeout(0.5));
-
-            // Back up slightly while stowing the superstructure for a period of time
-            Timer timer = new Timer();
-            addCommands(
-                new ParallelCommandGroup(
-                    // Move the superstructure to the desired stow position
-                    superstructure.setPreset(SuperstructurePreset.STOW_UPPER),
-                    // Adjust target speed to accelerate backwards (-X in robot centric)
-                    new SequentialCommandGroup(
-                        new InstantCommand(timer::restart),
-                        new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-timer.get() * 4))).repeatedly()
-                    )
-                ).withDeadline(new WaitCommand(0.5))
-            );
         } else {
             // Simplified place in simulation
-            Timer timer = new Timer();
             addCommands(
-                // Move the robot to desired position, stowing scrubber along the way
+                // Move the robot to desired position
                 new ConditionalCommand(
-                    AutoBuilder.pathfindThenFollowPath(path, constraints),
+                    AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraints),
                     AutoBuilder.followPath(path),
                     () -> suppliedPathName.isEmpty()
-                ),
-
-                /*
-                 * No place or scrub in simulation
-                 */
-
-                // Adjust target speed to accelerate backwards (-X in robot centric) for a period of time
-                new InstantCommand(timer::restart),
-                new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-timer.get() * 4))).repeatedly().withDeadline(new WaitCommand(0.5))
+                )
+                // No place or scrub in simulation
             );
         }
     }
