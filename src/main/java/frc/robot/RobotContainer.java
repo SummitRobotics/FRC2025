@@ -14,7 +14,6 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -140,20 +139,6 @@ public class RobotContainer {
     // Field2d object for simulation
     private final Field2d field = new Field2d();
 
-    // Ghost pointer positions to show which node is selected
-    private final Pose2d
-        ONE_LEFT = new Pose2d(3.186, 4.194, Rotation2d.fromDegrees(0)),
-        ONE_RIGHT = new Pose2d(3.187, 3.866, Rotation2d.fromDegrees(0)),
-        TWO_LEFT = new Pose2d(3.693, 2.982, Rotation2d.fromDegrees(60)),
-        TWO_RIGHT = new Pose2d(3.982, 2.816, Rotation2d.fromDegrees(60)),
-        THREE_LEFT = new Pose2d(4.989, 2.818, Rotation2d.fromDegrees(120)),
-        THREE_RIGHT = new Pose2d(5.283, 2.986, Rotation2d.fromDegrees(120)),
-        FOUR_LEFT = new Pose2d(5.783, 3.863, Rotation2d.fromDegrees(180)),
-        FOUR_RIGHT = new Pose2d(5.781, 4.188, Rotation2d.fromDegrees(180)),
-        FIVE_LEFT = new Pose2d(5.264, 5.076, Rotation2d.fromDegrees(240)),
-        FIVE_RIGHT = new Pose2d(4.992, 5.235, Rotation2d.fromDegrees(240)),
-        SIX_LEFT = new Pose2d(3.973, 5.231, Rotation2d.fromDegrees(300)),
-        SIX_RIGHT = new Pose2d(3.697, 5.061, Rotation2d.fromDegrees(300));
 
     public RobotContainer() {
         // Check if PS5 controllers should be used
@@ -449,12 +434,12 @@ public class RobotContainer {
         field.setRobotPose(drivetrain.getState().Pose);
         boolean left = leftRightChooser.getSelected() == Side.LEFT;
         Pose2d ghostPose = switch (hexSideChooser.getSelected()) {
-            case ONE -> left ? ONE_LEFT : ONE_RIGHT;
-            case TWO -> left ? TWO_LEFT : TWO_RIGHT;
-            case THREE -> left ? THREE_LEFT : THREE_RIGHT;
-            case FOUR -> left ? FOUR_LEFT : FOUR_RIGHT;
-            case FIVE -> left ? FIVE_LEFT : FIVE_RIGHT;
-            case SIX -> left ? SIX_LEFT : SIX_RIGHT;
+            case ONE -> left ? AutoPlace.ONE_LEFT : AutoPlace.ONE_RIGHT;
+            case TWO -> left ? AutoPlace.TWO_LEFT : AutoPlace.TWO_RIGHT;
+            case THREE -> left ? AutoPlace.THREE_LEFT : AutoPlace.THREE_RIGHT;
+            case FOUR -> left ? AutoPlace.FOUR_LEFT : AutoPlace.FOUR_RIGHT;
+            case FIVE -> left ? AutoPlace.FIVE_LEFT : AutoPlace.FIVE_RIGHT;
+            case SIX -> left ? AutoPlace.SIX_LEFT : AutoPlace.SIX_RIGHT;
         };
         // Flips to the other side of the field if it determines we need it
         ghostPose = Functions.mirrorPoseToRed(ghostPose);
