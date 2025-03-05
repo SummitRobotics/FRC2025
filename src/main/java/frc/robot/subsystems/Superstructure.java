@@ -83,7 +83,7 @@ public class Superstructure extends SubsystemBase {
     @Logged(name = "ElevatorA")
     private final TalonFX
         elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A);
-    @Logged(name = "ElevatorB")
+    // @Logged(name = "ElevatorB")
     private final TalonFX
         elevatorB = new TalonFX(Constants.Elevator.ELEVATOR_ID_B);
     StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
@@ -93,12 +93,14 @@ public class Superstructure extends SubsystemBase {
     private final SparkMax
         beltLeft = new SparkMax(Constants.Manipulator.BELT_LEFT_ID, MotorType.kBrushless),
         beltRight = new SparkMax(Constants.Manipulator.BELT_RIGHT_ID, MotorType.kBrushless);
+    @Logged(name = "Pivot")
     private final TalonFX pivot = new TalonFX(Constants.Manipulator.PIVOT_ID);
     private final MotionMagicVoltage pivotReq = new MotionMagicVoltage(0).withSlot(0);
     private final CANcoder pivotCancoder = new CANcoder(Constants.Manipulator.CANCODER_ID);
     private boolean pivotSafe = false;
     private boolean elevatorSafe = false;
     // Sensor
+    @Logged(name = "ManipulatorSensors")
     private CandiCoralSensor coralSensor = new CandiCoralSensor();
     private SerialTOFSensor tofSensor = new SerialTOFSensor(230400);
 
@@ -200,6 +202,11 @@ public class Superstructure extends SubsystemBase {
         tofSensor.tick();
     }
 
+    @Logged(name = "Command")
+    public String getCurrentCommandName() {
+        return (getCurrentCommand() != null) ? getCurrentCommand().getName() : "";
+    }
+
     // Set elevator position
     private void setElevator(double rotations) {
         if (rotations > 0.2 || elevatorA.getPosition().getValueAsDouble() > 0.2) {
@@ -223,7 +230,7 @@ public class Superstructure extends SubsystemBase {
             pivotSafe =
                 pivotCancoder.getPosition().getValueAsDouble() > SuperstructurePreset.STOW_UPPER.pivotRotations - Constants.Manipulator.ROTATION_TOLERANCE;
             elevatorSafe = 
-                Functions.withinTolerance(elevatorA.getPosition().getValueAsDouble(), elevatorRotations.getAsDouble(), Constants.Elevator.ROTATION_TOLERANCE);
+                Functions.withinTolerance(elevatorA.getPosition().getValueAsDouble(), elevatorRotations.getAsDouble(), Constants.Elevator.ROTATION_TOLERANCE * 1.5);
             // Freeze the elevator until pivot's safe
             setElevator(pivotSafe ? elevatorRotations.getAsDouble() : elevatorA.getPosition().getValueAsDouble());
             // Save the pivot until elevator's positioned

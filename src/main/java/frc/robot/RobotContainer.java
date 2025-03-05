@@ -107,8 +107,10 @@ public class RobotContainer {
 
     @Logged(name = "Superstructure")
     public final Superstructure superstructure = new Superstructure(buttonBox);
+    @Logged(name = "Scrubber")
     public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
     public final LEDSubsystem ledSubsystem = new LEDSubsystem(Constants.LED.PWM_PORT, Constants.LED.LED_COUNT);
+    @Logged(name = "Climb")
     public final Climb climb = new Climb();
 
     // Auto-align chooser

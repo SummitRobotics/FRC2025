@@ -41,9 +41,9 @@ public class Constants {
             // ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
             ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
         public static final double
-            P = 1,
+            P = 10,
             I = 0,
-            D = 0,
+            D = 0.1,
             kS = 0,
             kG = 0.8,
             kV = 0.15,

@@ -58,21 +58,21 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
     // Drivetrain motors, instantiated only for logging
-    @Logged(name = "Drive0")
+    // @Logged(name = "Drive0")
     TalonFX drive0 = getModule(0).getDriveMotor();
-    @Logged(name = "Drive1")
+    // @Logged(name = "Drive1")
     TalonFX drive1 = getModule(1).getDriveMotor();
-    @Logged(name = "Drive2")
+    // @Logged(name = "Drive2")
     TalonFX drive2 = getModule(2).getDriveMotor();
-    @Logged(name = "Drive3")
+    // @Logged(name = "Drive3")
     TalonFX drive3 = getModule(3).getDriveMotor();
-    @Logged(name = "Turn0")
+    // @Logged(name = "Turn0")
     TalonFX turn0 = getModule(0).getSteerMotor();
-    @Logged(name = "Turn1")
+    // @Logged(name = "Turn1")
     TalonFX turn1 = getModule(1).getSteerMotor();
-    @Logged(name = "Turn2")
+    // @Logged(name = "Turn2")
     TalonFX turn2 = getModule(2).getSteerMotor();
-    @Logged(name = "Turn3")
+    // @Logged(name = "Turn3")
     TalonFX turn3 = getModule(3).getSteerMotor();
     // @Logged(name = "TestState")
     // String testState = "";
