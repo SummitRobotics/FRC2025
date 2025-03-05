@@ -52,6 +52,9 @@ import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
 
+import java.util.Collections;
+import java.util.PriorityQueue;
+
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(.825).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -100,11 +103,17 @@ public class RobotContainer {
     private SendableChooser<Boolean> pushOverLineChooser = new SendableChooser<Boolean>();
     private boolean pushOverLine = false;
 
-    // Class members to add at the top of RobotContainer class
+    // Cycle timer variables
     private final Timer cycleTimer = new Timer();
     private int cycleCount = 0;
     private boolean timerRunning = false;
     private double lastCycleTime = 0.0;
+    private double totalCycleTime = 0.0;
+    private double averageCycleTime = 0.0;
+    private double medianCycleTime = 0.0;
+    // Efficient median tracking with two heaps
+    private PriorityQueue<Double> lowerHalf = new PriorityQueue<>(Collections.reverseOrder()); // max heap
+    private PriorityQueue<Double> upperHalf = new PriorityQueue<>(); // min heap
 
     // Button-based node chooser
     // private Side leftRight = Side.LEFT;
@@ -340,6 +349,8 @@ public class RobotContainer {
         }
         SmartDashboard.putNumber("Last Cycle Time", lastCycleTime);
         SmartDashboard.putNumber("Cycle Count", cycleCount);
+        SmartDashboard.putNumber("Average Cycle Time", averageCycleTime);
+        SmartDashboard.putNumber("Median Cycle Time", medianCycleTime);
     }
 
     private void configureBindings() {
@@ -438,23 +449,52 @@ public class RobotContainer {
             .and(superstructure.getCoralSensorPlace())
             .onTrue(new InstantCommand(() -> {
                 if (!timerRunning) {
-                    // First cycle - start the timer
                     cycleTimer.reset();
                     cycleTimer.start();
                     timerRunning = true;
                 } else {
-                    // Complete a cycle and immediately start timing the next one
                     lastCycleTime = cycleTimer.get();
                     cycleCount++;
-                    cycleTimer.reset(); // Reset to start timing the next cycle
-                    // Keep timerRunning true for continuous timing
+                    
+                    // Update running sum and average
+                    totalCycleTime += lastCycleTime;
+                    averageCycleTime = totalCycleTime / cycleCount;
+                    
+                    // Update median efficiently
+                    addToMedianCalculation(lastCycleTime);
+                    
+                    cycleTimer.reset(); // Reset for next cycle
                 }
 
                 // Update SmartDashboard
                 SmartDashboard.putNumber("Current Cycle Time", cycleTimer.get());
                 SmartDashboard.putNumber("Last Cycle Time", lastCycleTime);
                 SmartDashboard.putNumber("Cycle Count", cycleCount);
+                SmartDashboard.putNumber("Average Cycle Time", averageCycleTime);
+                SmartDashboard.putNumber("Median Cycle Time", medianCycleTime);
             }));
+    }
+
+    private void addToMedianCalculation(double cycleTime) {
+        if (lowerHalf.isEmpty() || cycleTime <= lowerHalf.peek()) {
+            lowerHalf.add(cycleTime);
+        } else {
+            upperHalf.add(cycleTime);
+        }
+
+        // Balance the heaps
+        if (lowerHalf.size() > upperHalf.size() + 1) {
+            upperHalf.add(lowerHalf.poll());
+        } else if (upperHalf.size() > lowerHalf.size()) {
+            lowerHalf.add(upperHalf.poll());
+        }
+
+        // Calculate median
+        if (lowerHalf.size() == upperHalf.size()) {
+            medianCycleTime = (lowerHalf.peek() + upperHalf.peek()) / 2.0;
+        } else {
+            medianCycleTime = lowerHalf.peek();
+        }
     }
 
     public Command getAutonomousCommand() {
