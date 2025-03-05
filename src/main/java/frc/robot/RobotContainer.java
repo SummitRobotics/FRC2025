@@ -111,9 +111,8 @@ public class RobotContainer {
     private double totalCycleTime = 0.0;
     private double averageCycleTime = 0.0;
     private double medianCycleTime = 0.0;
-    // Efficient median tracking with two heaps
-    private PriorityQueue<Double> lowerHalf = new PriorityQueue<>(Collections.reverseOrder()); // max heap
-    private PriorityQueue<Double> upperHalf = new PriorityQueue<>(); // min heap
+    private PriorityQueue<Double> medianMaxHeap = new PriorityQueue<>(Collections.reverseOrder()); // max heap for smaller values
+    private PriorityQueue<Double> medianMinHeap = new PriorityQueue<>(); // min heap for larger values
 
     // Button-based node chooser
     // private Side leftRight = Side.LEFT;
@@ -345,12 +344,12 @@ public class RobotContainer {
 
         // Update current cycle time if running
         if (timerRunning) {
-            SmartDashboard.putNumber("Current Cycle Time", cycleTimer.get());
+            SmartDashboard.putNumber("Current Cycle Time", Math.round(cycleTimer.get() * 10.0) / 10.0);
         }
-        SmartDashboard.putNumber("Last Cycle Time", lastCycleTime);
+        SmartDashboard.putNumber("Last Cycle Time", Math.round(lastCycleTime * 10.0) / 10.0);
         SmartDashboard.putNumber("Cycle Count", cycleCount);
-        SmartDashboard.putNumber("Average Cycle Time", averageCycleTime);
-        SmartDashboard.putNumber("Median Cycle Time", medianCycleTime);
+        SmartDashboard.putNumber("Average Cycle Time", Math.round(averageCycleTime * 10.0) / 10.0);
+        SmartDashboard.putNumber("Median Cycle Time", Math.round(medianCycleTime * 10.0) / 10.0);
     }
 
     private void configureBindings() {
@@ -443,7 +442,7 @@ public class RobotContainer {
                 // )
             );
 
-        // Cycle timer
+        // Cycle timer is triggered when the robot is in the RECEIVE state and both sensors are triggered
         new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
             .and(superstructure.getCoralSensorIntake())
             .and(superstructure.getCoralSensorPlace())
@@ -465,35 +464,39 @@ public class RobotContainer {
                     
                     cycleTimer.reset(); // Reset for next cycle
                 }
+            }));
 
-                // Update SmartDashboard
-                SmartDashboard.putNumber("Current Cycle Time", cycleTimer.get());
-                SmartDashboard.putNumber("Last Cycle Time", lastCycleTime);
-                SmartDashboard.putNumber("Cycle Count", cycleCount);
-                SmartDashboard.putNumber("Average Cycle Time", averageCycleTime);
-                SmartDashboard.putNumber("Median Cycle Time", medianCycleTime);
+        // Stop cycle timer when robot is disabled
+        new Trigger(() -> DriverStation.isDisabled())
+            .onTrue(new InstantCommand(() -> {
+                if (timerRunning) {
+                    // Just stop the timer without counting it as a cycle
+                    cycleTimer.stop();
+                    timerRunning = false;
+                }
             }));
     }
 
-    private void addToMedianCalculation(double cycleTime) {
-        if (lowerHalf.isEmpty() || cycleTime <= lowerHalf.peek()) {
-            lowerHalf.add(cycleTime);
+    // Efficient median calculation helper
+    private void addToMedianCalculation(double value) {
+        if (medianMaxHeap.isEmpty() || value <= medianMaxHeap.peek()) {
+            medianMaxHeap.add(value);
         } else {
-            upperHalf.add(cycleTime);
+            medianMinHeap.add(value);
         }
 
-        // Balance the heaps
-        if (lowerHalf.size() > upperHalf.size() + 1) {
-            upperHalf.add(lowerHalf.poll());
-        } else if (upperHalf.size() > lowerHalf.size()) {
-            lowerHalf.add(upperHalf.poll());
+        // Rebalance heaps if needed
+        if (medianMaxHeap.size() > medianMinHeap.size() + 1) {
+            medianMinHeap.add(medianMaxHeap.poll());
+        } else if (medianMinHeap.size() > medianMaxHeap.size()) {
+            medianMaxHeap.add(medianMinHeap.poll());
         }
 
         // Calculate median
-        if (lowerHalf.size() == upperHalf.size()) {
-            medianCycleTime = (lowerHalf.peek() + upperHalf.peek()) / 2.0;
+        if (medianMaxHeap.size() == medianMinHeap.size()) {
+            medianCycleTime = (medianMaxHeap.peek() + medianMinHeap.peek()) / 2.0;
         } else {
-            medianCycleTime = lowerHalf.peek();
+            medianCycleTime = medianMaxHeap.peek();
         }
     }
 
