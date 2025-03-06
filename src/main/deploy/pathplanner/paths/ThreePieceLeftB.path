@@ -28,20 +28,15 @@
       "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.5680020630076265,
-      "rotationDegrees": -50.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
-    "maxAngularVelocity": 270.0,
-    "maxAngularAcceleration": 360.0,
+    "maxVelocity": 4.5,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 405.0,
+    "maxAngularAcceleration": 540.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
@@ -55,5 +50,5 @@
     "velocity": 0,
     "rotation": 126.47712773867534
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }
