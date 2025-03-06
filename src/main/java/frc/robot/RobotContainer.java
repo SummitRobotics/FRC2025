@@ -311,14 +311,64 @@ public class RobotContainer {
         double matchTime = DriverStation.getMatchTime();
         NetworkTableInstance.getDefault().getTable("FMSInfo").getEntry("MatchTime").setDouble(matchTime);
 
-        // Update current cycle time if running
-        if (timerRunning) {
-            SmartDashboard.putNumber("Current Cycle Time", Math.round(cycleTimer.get() * 10.0) / 10.0);
-        }
+        SmartDashboard.putNumber("Current Cycle Time", Math.round(cycleTimer.get() * 10.0) / 10.0);
         SmartDashboard.putNumber("Last Cycle Time", Math.round(lastCycleTime * 10.0) / 10.0);
         SmartDashboard.putNumber("Cycle Count", cycleCount);
         SmartDashboard.putNumber("Average Cycle Time", Math.round(averageCycleTime * 10.0) / 10.0);
         SmartDashboard.putNumber("Median Cycle Time", Math.round(medianCycleTime * 10.0) / 10.0);
+    }
+
+    /**
+     * Configure cycle timer triggers for tracking cycle times during a match
+     */
+    private void configureCycleTimerTriggers() {
+        // Stop cycle timer when robot is disabled
+        new Trigger(() -> DriverStation.isDisabled())
+            .onTrue(new InstantCommand(() -> {
+                if (timerRunning) {
+                    // Just stop the timer without counting it as a cycle
+                    cycleTimer.stop();
+                    timerRunning = false;
+                }
+            }));
+
+        // Start cycle timer at match start if coral is pre-loaded
+        new Trigger(() -> DriverStation.isAutonomousEnabled() || DriverStation.isTeleopEnabled())
+            .onTrue(new InstantCommand(() -> {
+                // Only trigger once at the beginning of a match when we have a pre-loaded piece
+                if (!timerRunning && superstructure.getCoralSensorIntake().getAsBoolean() &&
+                    superstructure.getCoralSensorPlace().getAsBoolean()) {
+                    System.out.println("Match started with pre-loaded coral - starting cycle timer");
+                    cycleTimer.reset();
+                    cycleTimer.start();
+                    timerRunning = true;
+                }
+            }));
+
+        // Continue with regular cycle timer logic for subsequent pieces
+        new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
+            .and(superstructure.getCoralSensorIntake())
+            .and(superstructure.getCoralSensorPlace())
+            .onTrue(new InstantCommand(() -> {
+                // For subsequent cycles (not the first pre-loaded piece)
+                if (!timerRunning) {
+                    // First cycle or new cycle after scoring
+                    cycleTimer.reset();
+                    cycleTimer.start();
+                    timerRunning = true;
+                } else {
+                    // Complete a cycle
+                    lastCycleTime = cycleTimer.get();
+                    cycleCount++;
+
+                    // Update statistics
+                    totalCycleTime += lastCycleTime;
+                    averageCycleTime = totalCycleTime / cycleCount;
+                    addToMedianCalculation(lastCycleTime);
+
+                    cycleTimer.reset(); // Reset for next cycle
+                }
+            }));
     }
 
     private void configureBindings() {
@@ -413,39 +463,8 @@ public class RobotContainer {
                 superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
             );
 
-        // Cycle timer is triggered when the robot is in the RECEIVE state and both sensors are triggered
-        new Trigger(() -> superstructure.getState() == SuperstructurePreset.RECEIVE)
-            .and(superstructure.getCoralSensorIntake())
-            .and(superstructure.getCoralSensorPlace())
-            .onTrue(new InstantCommand(() -> {
-                if (!timerRunning) {
-                    cycleTimer.reset();
-                    cycleTimer.start();
-                    timerRunning = true;
-                } else {
-                    lastCycleTime = cycleTimer.get();
-                    cycleCount++;
-
-                    // Update running sum and average
-                    totalCycleTime += lastCycleTime;
-                    averageCycleTime = totalCycleTime / cycleCount;
-
-                    // Update median efficiently
-                    addToMedianCalculation(lastCycleTime);
-
-                    cycleTimer.reset(); // Reset for next cycle
-                }
-            }));
-
-        // Stop cycle timer when robot is disabled
-        new Trigger(() -> DriverStation.isDisabled())
-            .onTrue(new InstantCommand(() -> {
-                if (timerRunning) {
-                    // Just stop the timer without counting it as a cycle
-                    cycleTimer.stop();
-                    timerRunning = false;
-                }
-            }));
+        // Configure cycle timer triggers
+        configureCycleTimerTriggers();
     }
 
     // Efficient median calculation helper
