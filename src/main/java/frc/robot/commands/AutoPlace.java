@@ -150,7 +150,7 @@ public class AutoPlace extends SequentialCommandGroup {
             superstructure.setPreset(node.l)
                 .until(superstructure::atSetpoint)
                 .withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
-            // Wait some time if going to L3/L4 (to allow the wrist to achieve pose)
+            // Wait some time if going to L4 (to allow the wrist to achieve pose)
             new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.1 : 0),
             // Shoot out the coral
             new ParallelDeadlineGroup(

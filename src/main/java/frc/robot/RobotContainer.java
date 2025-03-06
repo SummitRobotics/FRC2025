@@ -61,15 +61,15 @@ public class RobotContainer {
 
     // #region driver_tuning
     // Flag to enable/disable driver tuning
-    private static final boolean ENABLE_DRIVER_TUNING = false;
+    private static final boolean ENABLE_DRIVER_TUNING = true;
 
-    private double translationDeadband = 0.0; // 0% default deadband to match current behavior
-    private double rotationDeadband = 0.0; // 0% default deadband to match current behavior
+    private double translationDeadband = 0.05; // 5% deadband
+    private double rotationDeadband = 0.05; // 5% deadband
     private double curveScale = 2.0; // Shared between translation and rotation curves, used with exponential curve
     private double dualRateBreakpoint = 0.5; // Shared between translation and rotation curves, used with dual rate curve
 
-    private double driveRequestTransDeadband = 0.1; // 10% of MaxSpeed to match current behavior
-    private double driveRequestRotDeadband = 0.1;   // 10% of MaxAngularRate to match current behavior
+    private double driveRequestTransDeadband = 0.0;
+    private double driveRequestRotDeadband = 0.0;
 
     // Open-loop voltage and LINEAR curves to match current behavior
     private DriveRequestType currentDriveRequestType = DriveRequestType.OpenLoopVoltage;
