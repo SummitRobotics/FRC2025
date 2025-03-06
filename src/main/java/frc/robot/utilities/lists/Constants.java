@@ -36,17 +36,17 @@ public class Constants {
             ELEVATOR_ID_B = 14;
         public static final AngularVelocity
             // ELEVATOR_MM_VEL = RotationsPerSecond.of(5);
-            ELEVATOR_MM_VEL = RotationsPerSecond.of(30);
+            ELEVATOR_MM_VEL = RotationsPerSecond.of(55);
         public static final AngularAcceleration
             // ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(10);
-            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(60);
+            ELEVATOR_MM_ACCEL = RotationsPerSecondPerSecond.of(75);
         public static final double
             P = 10,
             I = 0,
-            D = 0.1,
+            D = 0.05,
             kS = 0,
-            kG = 0.8,
-            kV = 0.15,
+            kG = 0.68,
+            kV = 0.10,
             kA = 0,
             MAX_ROTATIONS = 15.5,
             ROTATION_TOLERANCE = 1;
@@ -64,16 +64,16 @@ public class Constants {
             MIN_ROTATIONS = -0.246,
             CLEAR_OF_ELEVATOR_ROTATIONS = -0.145264,
             PIVOT_RATIO = 54,
-            P = 25,
+            P = 50,
             I = 1,
             D = 0,
             kS = 0,
             kG = 0.27,
-            kV = 0.3,
-            kA = 0,
+            kV = 0.4,
+            kA = 0.02,
             ROTATION_TOLERANCE = 0.1,
             MAX_VELOCITY = 60,
-            MAX_ACCEL = 120;
+            MAX_ACCEL = 80;
     }
 
     public static class Scrubber {

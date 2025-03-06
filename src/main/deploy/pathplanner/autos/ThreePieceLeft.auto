@@ -7,6 +7,12 @@
         {
           "type": "path",
           "data": {
+            "pathName": "ThreePieceLeftStart"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
             "pathName": "ThreePieceLeftA"
           }
         },

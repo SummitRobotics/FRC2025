@@ -39,7 +39,7 @@ public class Superstructure extends SubsystemBase {
     public static enum SuperstructurePreset {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
         STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.8, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
-        RECEIVE(2.3, -0.130859, 0, 0, "Receive", Button.RECEIVE_PRESET),
+        RECEIVE(2.65, -0.130859, 0, 0, "Receive", Button.RECEIVE_PRESET),
         L1(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.145408, 0, 0, "3", Button.L3_PRESET),

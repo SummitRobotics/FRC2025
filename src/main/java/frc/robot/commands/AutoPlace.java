@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -83,15 +84,23 @@ public class AutoPlace extends SequentialCommandGroup {
     }
 
     // Create the constraints to use while pathfinding
-    private PathConstraints constraints = new PathConstraints(
+    private PathConstraints constraintsSlow = new PathConstraints(
             1.5, 2.0,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
+    private PathConstraints constraintsFast = new PathConstraints(
+        4.5, 4.5,
+        405, 540
+    );
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
         this(drivetrain, superstructure, scrubber, node, "");
     }
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName) {
+        this(drivetrain, superstructure, scrubber, node, suppliedPathName, false);
+    }
+
+    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean onTheFly) {
         PathPlannerPath path;
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
@@ -110,17 +119,28 @@ public class AutoPlace extends SequentialCommandGroup {
         Command move = new ParallelDeadlineGroup(
             // On the fly pathfinding to station, or follow the path if supplied
             new ConditionalCommand(
-                AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraints),
-                AutoBuilder.followPath(path),
+                AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraintsSlow),
+                new ConditionalCommand(
+                    AutoBuilder.pathfindThenFollowPath(path, constraintsFast),
+                    AutoBuilder.followPath(path),
+                    () -> onTheFly
+                ),
                 () -> suppliedPathName.isEmpty()
             ),
             // Move the superstructure into a safe position for moving
-            new ConditionalCommand(
-                // If going to L1, L2, or L3, set the superstructure to the desired position
-                superstructure.setPreset(node.l),
-                // If going to L4 then use L4 intermediate
-                superstructure.setPreset(SuperstructurePreset.L4_INTERMEDIATE),
-                () -> node.l != SuperstructurePreset.L4
+            new SequentialCommandGroup(
+                new ConditionalCommand(
+                    new InstantCommand(() -> {}),
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withTimeout(1),
+                    () -> suppliedPathName.isEmpty() || onTheFly
+                ),
+                new ConditionalCommand(
+                    // If going to L1, L2, or L3, set the superstructure to the desired position
+                    superstructure.setPresetWithAutoCenter(node.l),
+                    // If going to L4 then use L4 intermediate
+                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.L4_INTERMEDIATE),
+                    () -> node.l != SuperstructurePreset.L4
+                )
             )
         );
 
@@ -131,7 +151,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 .until(superstructure::atSetpoint)
                 .withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
             // Wait some time if going to L3/L4 (to allow the wrist to achieve pose)
-            new WaitCommand((node.l == SuperstructurePreset.L3) || (node.l == SuperstructurePreset.L4) ? 0.5 : 0),
+            new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.1 : 0),
             // Shoot out the coral
             new ParallelDeadlineGroup(
                 // Rum until the shoot sensors are cleared, or for a timeout if going to L1
@@ -181,7 +201,7 @@ public class AutoPlace extends SequentialCommandGroup {
             addCommands(
                 // Move the robot to desired position
                 new ConditionalCommand(
-                    AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraints),
+                    AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraintsSlow),
                     AutoBuilder.followPath(path),
                     () -> suppliedPathName.isEmpty()
                 )
