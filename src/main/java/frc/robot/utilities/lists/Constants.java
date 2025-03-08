@@ -54,8 +54,8 @@ public class Constants {
 
     public static class Manipulator {
         public static final int
-            BELT_LEFT_ID = 11,
-            BELT_RIGHT_ID = 10,
+            BELT_LEFT_ID = 22,
+            BELT_RIGHT_ID = 21,
             PIVOT_ID = 28,
             CORAL_SENSOR_ID = 50,
             CANCODER_ID = 5;

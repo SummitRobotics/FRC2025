@@ -85,7 +85,7 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraintsSlow = new PathConstraints(
-            1.5, 2.0,
+            1, 1.5,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
     private PathConstraints constraintsFast = new PathConstraints(
         4.5, 4.5,
@@ -119,7 +119,8 @@ public class AutoPlace extends SequentialCommandGroup {
         Command move = new ParallelDeadlineGroup(
             // On the fly pathfinding to station, or follow the path if supplied
             new ConditionalCommand(
-                AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraintsSlow),
+                // AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraintsSlow),
+                new PIDtoPose(drivetrain, node.hexSide.getPlacePose(node.side)),
                 new ConditionalCommand(
                     AutoBuilder.pathfindThenFollowPath(path, constraintsFast),
                     AutoBuilder.followPath(path),
@@ -136,7 +137,11 @@ public class AutoPlace extends SequentialCommandGroup {
                 ),
                 new ConditionalCommand(
                     // If going to L1, L2, or L3, set the superstructure to the desired position
-                    superstructure.setPresetWithAutoCenter(node.l),
+                    new ConditionalCommand(
+                        superstructure.setPresetWithAutoCenter(node.l),
+                        superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER),
+                        () -> node.l != SuperstructurePreset.MANUAL_OVERRIDE
+                    ),
                     // If going to L4 then use L4 intermediate
                     superstructure.setPresetWithAutoCenter(SuperstructurePreset.L4_INTERMEDIATE),
                     () -> node.l != SuperstructurePreset.L4
@@ -151,7 +156,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 .until(superstructure::atSetpoint)
                 .withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
             // Wait some time if going to L4 (to allow the wrist to achieve pose)
-            new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.1 : 0),
+            new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.25 : 0),
             // Shoot out the coral
             new ParallelDeadlineGroup(
                 // Rum until the shoot sensors are cleared, or for a timeout if going to L1

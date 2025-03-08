@@ -13,8 +13,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -39,16 +37,16 @@ public class Superstructure extends SubsystemBase {
     public static enum SuperstructurePreset {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
         STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.8, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
-        RECEIVE(2.65, -0.130859, 0, 0, "Receive", Button.RECEIVE_PRESET),
+        RECEIVE(3.43, -0.165, 0, 0, "Receive", Button.RECEIVE_PRESET),
         L1(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.145408, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
         L4(14.85209, 0.091666, 0, 0, "4", Button.L4_PRESET),
-        L1_GO(L1.elevatorRotations, L1.pivotRotations, -1, 1, "1", null),
-        L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, -1, "2", null),
-        L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, -1, "3", null),
-        L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, -1, "4", null),
+        L1_GO(L1.elevatorRotations, L1.pivotRotations, -1, -1, "1", null),
+        L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, 1, "2", null),
+        L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, 1, "3", null),
+        L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
         L4_INTERMEDIATE(L3.elevatorRotations, STOW_UPPER.pivotRotations, 0, 0, "Intermediate", null),
         MANUAL_OVERRIDE(0.3, 0, 0, 0, "None", null); // being manually overridden to something
         public double elevatorRotations;
@@ -90,9 +88,9 @@ public class Superstructure extends SubsystemBase {
     private final MotionMagicVoltage mmVoltageReq = new MotionMagicVoltage(0).withSlot(0);
     private final Follower followReq = new Follower(Constants.Elevator.ELEVATOR_ID_A, false);
     // Manipulator
-    private final SparkMax
-        beltLeft = new SparkMax(Constants.Manipulator.BELT_LEFT_ID, MotorType.kBrushless),
-        beltRight = new SparkMax(Constants.Manipulator.BELT_RIGHT_ID, MotorType.kBrushless);
+    private final TalonFX
+        beltLeft = new TalonFX(Constants.Manipulator.BELT_LEFT_ID),
+        beltRight = new TalonFX(Constants.Manipulator.BELT_RIGHT_ID);
     @Logged(name = "Pivot")
     private final TalonFX pivot = new TalonFX(Constants.Manipulator.PIVOT_ID);
     private final MotionMagicVoltage pivotReq = new MotionMagicVoltage(0).withSlot(0);
@@ -160,6 +158,15 @@ public class Superstructure extends SubsystemBase {
         pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Manipulator.MAX_ROTATIONS;
         pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Manipulator.MIN_ROTATIONS;
         pivot.getConfigurator().apply(pivotConfig);
+
+        // Belts
+        TalonFXConfiguration beltConfig = new TalonFXConfiguration();
+        pivotConfig.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
+        config.CurrentLimits.StatorCurrentLimit = 40;
+        config.CurrentLimits.StatorCurrentLimitEnable = true;
+        beltLeft.getConfigurator().apply(beltConfig);
+        beltRight.getConfigurator().apply(beltConfig.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
+
         setPreset(SuperstructurePreset.STOW_LOWER);
 
         this.buttonBox = buttonBox;
@@ -256,12 +263,12 @@ public class Superstructure extends SubsystemBase {
         DoubleSupplier beltSupplier = new DoubleSupplier() {
             @Override
             public double getAsDouble() {
-                if (getCoralSensorPlace().negate().getAsBoolean()) return 0.85;
-                if (getCoralSensorIntake().negate().getAsBoolean()) return -0.85;
+                if (getCoralSensorPlace().negate().getAsBoolean()) return 0.42;
+                if (getCoralSensorIntake().negate().getAsBoolean()) return -0.42;
                 return 0;
             }
         };
-        return setPresetWithBeltOverride(preset, beltSupplier, () -> -beltSupplier.getAsDouble());
+        return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);
     }
 
     public Command setPresetWithFarSpit(SuperstructurePreset preset) {
@@ -272,7 +279,7 @@ public class Superstructure extends SubsystemBase {
                 return 1;
             }
         };
-        return setPresetWithBeltOverride(preset, beltSupplier, () -> -beltSupplier.getAsDouble());
+        return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);
     }
 
     public Command setPreset(SuperstructurePreset preset) {
