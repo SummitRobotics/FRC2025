@@ -12,19 +12,16 @@ import frc.robot.utilities.Functions;
 // TODO - move to inside of CommandSwerveDrivetrain subsystem for encapsulation purposes
 public class PIDtoPose extends Command {
     private SwerveRequest.FieldCentric request;
-
     private CommandSwerveDrivetrain drivetrain;
-
     private PIDController xController, yController, rotateController;
-
     private Pose2d setpoint;
     private double maxVel = 4;
 
     public PIDtoPose(CommandSwerveDrivetrain drivetrain, Pose2d setpoint) {
         this.setpoint = setpoint;
         this.drivetrain = drivetrain;
-        xController = new PIDController(4, 0, 0.1);
-        yController = new PIDController(4, 0, 0.1);
+        xController = new PIDController(4, 0, 0.2);
+        yController = new PIDController(4, 0, 0.2);
         rotateController = new PIDController(0.2, 0, 0);
         request = new SwerveRequest.FieldCentric()
                 .withDeadband(0).withRotationalDeadband(0)
@@ -76,7 +73,7 @@ public class PIDtoPose extends Command {
     @Override
     public boolean isFinished() {
         return xAtSetpoint() && yAtSetpoint() && rotateAtSetpoint()
-                && Math.abs(drivetrain.getState().Speeds.vxMetersPerSecond) < 0.1
-                && Math.abs(drivetrain.getState().Speeds.vyMetersPerSecond) < 0.1;
+                && Math.abs(drivetrain.getState().Speeds.vxMetersPerSecond) < 0.01
+                && Math.abs(drivetrain.getState().Speeds.vyMetersPerSecond) < 0.01;
     }
 }

@@ -23,18 +23,18 @@ import frc.robot.utilities.lists.Constants;
 public class AutoPlace extends SequentialCommandGroup {
     // Ghost pointer positions to show which node is selected
     public static final Pose2d
-        ONE_LEFT = new Pose2d(3.186, 4.194, Rotation2d.fromDegrees(0)),
-        ONE_RIGHT = new Pose2d(3.187, 3.866, Rotation2d.fromDegrees(0)),
-        TWO_LEFT = new Pose2d(3.693, 2.982, Rotation2d.fromDegrees(60)),
-        TWO_RIGHT = new Pose2d(3.982, 2.816, Rotation2d.fromDegrees(60)),
-        THREE_LEFT = new Pose2d(4.989, 2.818, Rotation2d.fromDegrees(120)),
-        THREE_RIGHT = new Pose2d(5.283, 2.986, Rotation2d.fromDegrees(120)),
-        FOUR_LEFT = new Pose2d(5.783, 3.863, Rotation2d.fromDegrees(180)),
-        FOUR_RIGHT = new Pose2d(5.781, 4.188, Rotation2d.fromDegrees(180)),
-        FIVE_LEFT = new Pose2d(5.264, 5.076, Rotation2d.fromDegrees(240)),
-        FIVE_RIGHT = new Pose2d(4.992, 5.235, Rotation2d.fromDegrees(240)),
-        SIX_LEFT = new Pose2d(3.973, 5.231, Rotation2d.fromDegrees(300)),
-        SIX_RIGHT = new Pose2d(3.697, 5.061, Rotation2d.fromDegrees(300));
+        ONE_LEFT = new Pose2d(3.186 /*+ 0.01905*/, 4.194, Rotation2d.fromDegrees(0)),
+        ONE_RIGHT = new Pose2d(3.186 /*+ 0.01905*/, 3.866, Rotation2d.fromDegrees(0)),
+        TWO_LEFT = new Pose2d(3.693 /*+ 0.01905 * Math.cos(Math.PI / 3)*/, 2.982 /*+ 0.01905 * Math.sin(Math.PI / 3)*/, Rotation2d.fromDegrees(60)),
+        TWO_RIGHT = new Pose2d(3.982 /*+ 0.01905 * Math.cos(Math.PI / 3)*/, 2.816 /*+ 0.01905 * Math.sin(Math.PI / 3)*/, Rotation2d.fromDegrees(60)),
+        THREE_LEFT = new Pose2d(4.989 /*+ 0.01905 * Math.cos(2 * Math.PI / 3)*/, 2.818 /*+ 0.01905 * Math.sin(2 * Math.PI / 3)*/, Rotation2d.fromDegrees(120)),
+        THREE_RIGHT = new Pose2d(5.283 /*+ 0.01905 * Math.cos(2 * Math.PI / 3)*/, 2.986 /*+ 0.01905 * Math.sin(2 * Math.PI / 3)*/, Rotation2d.fromDegrees(120)),
+        FOUR_LEFT = new Pose2d(5.783 /*+ 0.01905 * Math.cos(Math.PI)*/, 3.863 /*+ 0.01905 * Math.sin(Math.PI)*/, Rotation2d.fromDegrees(180)),
+        FOUR_RIGHT = new Pose2d(5.781 /*+ 0.01905 * Math.cos(Math.PI)*/, 4.188 /*+ 0.01905 * Math.sin(Math.PI)*/, Rotation2d.fromDegrees(180)),
+        FIVE_LEFT = new Pose2d(5.264 /*+ 0.01905 * Math.cos(4 * Math.PI / 3)*/, 5.076 /*+ 0.01905 * Math.sin(4 * Math.PI / 3)*/, Rotation2d.fromDegrees(240)),
+        FIVE_RIGHT = new Pose2d(4.992 /*+ 0.01905 * Math.cos(4 * Math.PI / 3)*/, 5.235 /*+ 0.01905 * Math.sin(4 * Math.PI / 3)*/, Rotation2d.fromDegrees(240)),
+        SIX_LEFT = new Pose2d(3.973 /*+ 0.01905 * Math.cos(5 * Math.PI / 3)*/, 5.231 /*+ 0.01905 * Math.sin(5 * Math.PI / 3)*/, Rotation2d.fromDegrees(300)),
+        SIX_RIGHT = new Pose2d(3.697 /*+ 0.01905 * Math.cos(5 * Math.PI / 3)*/, 5.061 /*+ 0.01905 * Math.sin(5 * Math.PI / 3)*/, Rotation2d.fromDegrees(300));
 
     public enum HexSide {
         ONE("1", ONE_LEFT, ONE_RIGHT),
@@ -88,11 +88,11 @@ public class AutoPlace extends SequentialCommandGroup {
             1, 1.5,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
     private PathConstraints constraintsFast = new PathConstraints(
-        4.5, 4.5,
-        405, 540
+        3, 3,
+        360, 400
     );
 
-    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe) {
+    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast) {
         PathPlannerPath path;
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
@@ -112,9 +112,10 @@ public class AutoPlace extends SequentialCommandGroup {
             // On the fly pathfinding to station, or follow the path if supplied
             new ConditionalCommand(
                 // AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraintsSlow),
-                new PIDtoPose(drivetrain, node.hexSide.getPlacePose(node.side)),
+                // new PIDtoPose(drivetrain, node.hexSide.getPlacePose(node.side)),
+                AutoBuilder.pathfindThenFollowPath(path, fast ? constraintsFast : constraintsSlow),
                 // new ConditionalCommand(
-                    // AutoBuilder.pathfindThenFollowPath(path, constraintsFast),
+                    // AutoBuilder.pathfindThenFollowPath(path, constraintsSlow),
                 AutoBuilder.followPath(path),
                     // () -> onTheFly
                 // ),
@@ -148,7 +149,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 .until(superstructure::atSetpoint)
                 .withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
             // Wait some time if going to L4 (to allow the wrist to achieve pose)
-            new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.25 : 0),
+            new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.4 : 0),
             // Shoot out the coral
             new ParallelDeadlineGroup(
                 // Rum until the shoot sensors are cleared, or for a timeout if going to L1
