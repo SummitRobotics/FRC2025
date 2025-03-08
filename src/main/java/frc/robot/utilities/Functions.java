@@ -39,6 +39,17 @@ public class Functions {
     }
 
     /**
+     * Clamps the magnitude of a value while preserving its sign
+     * @param value The value to clamp
+     * @param maxMagnitude The maximum allowed magnitude
+     * @return The value with its magnitude limited but sign preserved
+     */
+    public static double clampMagnitude(double value, double maxMagnitude) {
+      // Preserves sign while clamping magnitude
+      return Math.signum(value) * Math.min(Math.abs(value), maxMagnitude);
+    }
+
+    /**
      * returns input value with deadzone applied.
      *
      * @param deadRange the range in both directions to be dead
