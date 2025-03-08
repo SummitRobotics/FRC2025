@@ -92,15 +92,7 @@ public class AutoPlace extends SequentialCommandGroup {
         405, 540
     );
 
-    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node) {
-        this(drivetrain, superstructure, scrubber, node, "");
-    }
-
-    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName) {
-        this(drivetrain, superstructure, scrubber, node, suppliedPathName, false);
-    }
-
-    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean onTheFly) {
+    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe) {
         PathPlannerPath path;
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
@@ -121,19 +113,19 @@ public class AutoPlace extends SequentialCommandGroup {
             new ConditionalCommand(
                 // AutoBuilder.pathfindToPoseFlipped(node.hexSide.getPlacePose(node.side), constraintsSlow),
                 new PIDtoPose(drivetrain, node.hexSide.getPlacePose(node.side)),
-                new ConditionalCommand(
-                    AutoBuilder.pathfindThenFollowPath(path, constraintsFast),
-                    AutoBuilder.followPath(path),
-                    () -> onTheFly
-                ),
+                // new ConditionalCommand(
+                    // AutoBuilder.pathfindThenFollowPath(path, constraintsFast),
+                AutoBuilder.followPath(path),
+                    // () -> onTheFly
+                // ),
                 () -> suppliedPathName.isEmpty()
             ),
             // Move the superstructure into a safe position for moving
             new SequentialCommandGroup(
                 new ConditionalCommand(
-                    new InstantCommand(() -> {}),
                     superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withTimeout(1),
-                    () -> suppliedPathName.isEmpty() || onTheFly
+                    new InstantCommand(() -> {}),
+                    () -> manipulatorSafe
                 ),
                 new ConditionalCommand(
                     // If going to L1, L2, or L3, set the superstructure to the desired position
