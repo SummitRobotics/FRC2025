@@ -274,9 +274,9 @@ public class RobotContainer {
             autoChooser.addOption(
                 "Predefined Left",
                 new SequentialCommandGroup(
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "", false, true),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.L3_SCRUB), "", false, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftA"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftB", true, true),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.STOW_UPPER), "ThreePieceLeftB", true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftC"),
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftD", true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE")
@@ -285,9 +285,9 @@ public class RobotContainer {
             autoChooser.addOption(
                 "Predefined Right",
                 new SequentialCommandGroup(
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.THREE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "", false, true),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.THREE, Side.LEFT, SuperstructurePreset.L3_SCRUB), "", false, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightA"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightB", true, true),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.RIGHT, SuperstructurePreset.STOW_UPPER), "ThreePieceRightB", true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightC"),
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightD", true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightE")

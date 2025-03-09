@@ -118,7 +118,7 @@ public class AutoPickup extends SequentialCommandGroup {
                         )
                     ).withDeadline(
                         // Wait until the coral intake sensor is triggered (the coral place sensor may not be triggered)
-                        new WaitUntilCommand(() -> superstructure.getCoralSensorIntake()/*.and(superstructure.getCoralSensorPlace())*/.getAsBoolean())
+                        new WaitUntilCommand(() -> superstructure.getCoralSensorIntake().and(superstructure.getCoralSensorPlace()).getAsBoolean())
                     ),
                     // Do nothing if given the flag
                     new InstantCommand(() -> {}),
