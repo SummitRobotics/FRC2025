@@ -263,8 +263,8 @@ public class Superstructure extends SubsystemBase {
         DoubleSupplier beltSupplier = new DoubleSupplier() {
             @Override
             public double getAsDouble() {
-                if (getCoralSensorPlace().negate().getAsBoolean()) return 0.42;
-                if (getCoralSensorIntake().negate().getAsBoolean()) return -0.42;
+                if (getCoralSensorPlace().negate().getAsBoolean()) return 0.55;
+                if (getCoralSensorIntake().negate().getAsBoolean()) return -0.55;
                 return 0;
             }
         };
