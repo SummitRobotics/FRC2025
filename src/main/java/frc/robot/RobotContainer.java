@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -121,15 +122,15 @@ public class RobotContainer {
     // Auto
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
     private final SendableChooser<AutoSegment> autoSegmentChoice;
-    private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
-    private CoralStationSide autoStationOne = CoralStationSide.LEFT;
-    private Node autoNodeTwo = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
-    private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
-    private Node autoNodeThree = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
-    private CoralStationSide autoStationThree = CoralStationSide.LEFT;
+    // private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
+    // private CoralStationSide autoStationOne = CoralStationSide.LEFT;
+    // private Node autoNodeTwo = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
+    // private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
+    // private Node autoNodeThree = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
+    // private CoralStationSide autoStationThree = CoralStationSide.LEFT;
     private Timer flipUpTimer = new Timer();
     private SendableChooser<Boolean> pushOverLineChooser = new SendableChooser<Boolean>();
-    private boolean pushOverLine = false;
+    // private boolean pushOverLine = false;
 
     // Cycle timer variables
     private final Timer cycleTimer = new Timer();
@@ -206,7 +207,7 @@ public class RobotContainer {
         autoSegmentChoice.setDefaultOption("Do First", AutoSegment.DO_FIRST);
         autoSegmentChoice.addOption("Do Second", AutoSegment.DO_SECOND);
         autoSegmentChoice.addOption("Do Third", AutoSegment.DO_THIRD);
-        WrapperCommand updateAutoChoice = new InstantCommand(() -> {
+        /*WrapperCommand updateAutoChoice = new InstantCommand(() -> {
             Node result = new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected());
             pushOverLine = pushOverLineChooser.getSelected();
             switch (autoSegmentChoice.getSelected()) {
@@ -226,39 +227,39 @@ public class RobotContainer {
                     break;
                 }
             }
-            // autoChooser.addOption("Combination Auto", new SequentialCommandGroup(
-                // For getting move points in auto by shoving a positioned allied team backwards over the line, optionally
-                // new ConditionalCommand(
-                    // new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withTimeout(0.25),
-                    // new InstantCommand(() -> {}),
-                    // () -> pushOverLine
-                // ),
-                // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
-                // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
-                // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
-                // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
-                // new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
-                // new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree)
-            // ));
-        }).ignoringDisable(true);
-        SmartDashboard.putData("Auto Status", new Sendable() {
-            @Override
-            public void initSendable(SendableBuilder builder) {
-                builder.addStringProperty("Push Over Line", () -> pushOverLine ? "Yes" : "No", null);
-                builder.addStringProperty("Segment 1", () -> autoNodeOne.toString() + ", Coral Station: " + autoStationOne.pathName, null);
-                builder.addStringProperty("Segment 2", () -> autoNodeTwo.toString() + ", Coral Station: " + autoStationTwo.pathName, null);
-                builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
-            }
-        });
-        SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
-        SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
-        SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
+            autoChooser.addOption("Combination Auto", new SequentialCommandGroup(
+                For getting move points in auto by shoving a positioned allied team backwards over the line, optionally
+                new ConditionalCommand(
+                    new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withTimeout(0.25),
+                    new InstantCommand(() -> {}),
+                    () -> pushOverLine
+                ),
+                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
+                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
+                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
+                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
+                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
+                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree)
+            ));
+        }).ignoringDisable(true);*/
+        // SmartDashboard.putData("Auto Status", new Sendable() {
+            // @Override
+            // public void initSendable(SendableBuilder builder) {
+                // builder.addStringProperty("Push Over Line", () -> pushOverLine ? "Yes" : "No", null);
+                // builder.addStringProperty("Segment 1", () -> autoNodeOne.toString() + ", Coral Station: " + autoStationOne.pathName, null);
+                // builder.addStringProperty("Segment 2", () -> autoNodeTwo.toString() + ", Coral Station: " + autoStationTwo.pathName, null);
+                // builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
+            // }
+        // });
+        // SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
+        // SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
+        // SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
         SmartDashboard.putData("Auto Chooser", autoChooser);
-        SmartDashboard.putData("Push Over Line Chooser", pushOverLineChooser);
+        // SmartDashboard.putData("Push Over Line Chooser", pushOverLineChooser);
         if (Constants.DEBUG_LOG_ENABLED) {
             SmartDashboard.putData("Superstructure", superstructure);
             SmartDashboard.putData("Drivetrain", drivetrain);
@@ -269,6 +270,16 @@ public class RobotContainer {
         SmartDashboard.putData("Extend", climb.extend());
         SmartDashboard.putData("Lift", climb.lift());
         SmartDashboard.putData("Retract", climb.retract());
+        // Instant scrub button
+        SmartDashboard.putData("Scrub", new SequentialCommandGroup(
+            // Move the superstructure to the desired scrub position, wait until at setpoint or timeout
+            superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
+                .until(superstructure::atSetpoint)
+                .withDeadline(new WaitCommand(0.5)),
+            // Wait some time if going to L4 (to allow the superstructure to settle?)
+            // Drive the scrubber arms up until timeout
+            scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS).withDeadline(new WaitCommand(0.5))
+        ));
         // Add further auto options (may be best moved to a separate file)
         try {
             autoChooser.addOption(
@@ -278,8 +289,8 @@ public class RobotContainer {
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftA"),
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftB", true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftC"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftD", true, true),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE")
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.STOW_UPPER), "ThreePieceLeftD", true, true)
+                    // new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE")
                 )
             );
             autoChooser.addOption(
@@ -289,8 +300,8 @@ public class RobotContainer {
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightA"),
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightB", true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightC"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightD", true, true),
-                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightE")
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.LEFT, SuperstructurePreset.STOW_UPPER), "ThreePieceRightD", true, true)
+                    // new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightE")
                 )
             );
         } catch (Exception e) {
