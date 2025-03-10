@@ -88,8 +88,8 @@ public class AutoPlace extends SequentialCommandGroup {
             1, 1.5,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
     private PathConstraints constraintsFast = new PathConstraints(
-        3, 3,
-        360, 400
+        4, 4,
+        360, 360
     );
 
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast) {
