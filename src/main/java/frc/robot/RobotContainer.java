@@ -60,8 +60,8 @@ public class RobotContainer {
 
     // #region driver_tuning
     // Driver controller tuning enabled when Constants.ENABLE_DRIVER_CONTROLLER_TUNING is true
-    private double translationDeadband = 0.15; // 5% deadband
-    private double rotationDeadband = 0.15; // 5% deadband
+    private double translationDeadband = 0.05; // 5% deadband
+    private double rotationDeadband = 0.05; // 5% deadband
     private double curveScale = 2.0; // Shared between translation and rotation curves, used with exponential curve
     private double dualRateBreakpoint = 0.5; // Shared between translation and rotation curves, used with dual rate curve
 
@@ -147,7 +147,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         // Check if PS5 controllers should be used
-        boolean usePS5Controllers = true; //Boolean.parseBoolean(System.getenv("USE_PS5_CONTROLLERS"));
+        boolean usePS5Controllers = false; //Boolean.parseBoolean(System.getenv("USE_PS5_CONTROLLERS"));
 
         if (usePS5Controllers) {
             driverController = new CommandControllerWrapper(new CommandPS5Controller(Constants.OI.DRIVER_PS5));
