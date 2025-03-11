@@ -114,6 +114,7 @@ public class RobotContainer {
 
     // Auto-align chooser
     private final SendableChooser<Command> autoChooser;
+    private final Command defaultAutoCommand = new InstantCommand(() -> {});
     private final SendableChooser<SuperstructurePreset> lChooser;
     private final SendableChooser<HexSide> hexSideChooser;
     private final SendableChooser<Side> leftRightChooser;
@@ -159,9 +160,8 @@ public class RobotContainer {
             gunnerController = new CommandControllerWrapper(new CommandXboxController(Constants.OI.GUNNER_XBOX));
             System.out.println("Controller Type: Xbox");
         }
-
         autoChooser = new SendableChooser<Command>();
-        autoChooser.setDefaultOption("Do Nothing", new InstantCommand(() -> {}));
+        autoChooser.setDefaultOption("Do Nothing", defaultAutoCommand);
         lChooser = new SendableChooser<SuperstructurePreset>();
         hexSideChooser = new SendableChooser<HexSide>();
         leftRightChooser = new SendableChooser<Side>();
@@ -325,6 +325,10 @@ public class RobotContainer {
         SmartDashboard.putNumber("Cycle Count", cycleCount);
         SmartDashboard.putNumber("Average Cycle Time", Math.round(averageCycleTime * 10.0) / 10.0);
         SmartDashboard.putNumber("Median Cycle Time", Math.round(medianCycleTime * 10.0) / 10.0);
+
+        // Check if a non-default auto command is selected
+        boolean isAutoSelected = autoChooser.getSelected() != defaultAutoCommand;
+        SmartDashboard.putBoolean("Auto Selected", isAutoSelected);
     }
 
     /**
