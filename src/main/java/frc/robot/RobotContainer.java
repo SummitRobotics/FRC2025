@@ -395,7 +395,7 @@ public class RobotContainer {
                 // Apply response curves
                 leftY = driveCurve.apply(leftY);
                 leftX = driveCurve.apply(leftX);
-                rightX = rotationCurve.apply(rightX);
+                rightX = -rotationCurve.apply(rightX);
 
                 // Scale to m/s and rad/s and apply to the swerve request
                 return drive.withVelocityX(leftY * MaxSpeed)
