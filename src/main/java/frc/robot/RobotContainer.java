@@ -59,9 +59,7 @@ public class RobotContainer {
     private double MaxAngularRate = RotationsPerSecond.of(.825).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     // #region driver_tuning
-    // Flag to enable/disable driver tuning
-    private static final boolean ENABLE_DRIVER_TUNING = true;
-
+    // Driver controller tuning enabled when Constants.ENABLE_DRIVER_CONTROLLER_TUNING is true
     private double translationDeadband = 0.05; // 5% deadband
     private double rotationDeadband = 0.05; // 5% deadband
     private double curveScale = 2.0; // Shared between translation and rotation curves, used with exponential curve
@@ -561,7 +559,7 @@ public class RobotContainer {
      */
     private void initializeDashboardTuning() {
         // Driver control tuning - only if enabled
-        if (ENABLE_DRIVER_TUNING) {
+        if (Constants.ENABLE_DRIVER_CONTROLLER_TUNING) {
             // Drive request type chooser
             driveRequestTypeChooser.setDefaultOption("Open Loop Voltage", DriveRequestType.OpenLoopVoltage);
             driveRequestTypeChooser.addOption("Velocity", DriveRequestType.Velocity);
@@ -606,7 +604,7 @@ public class RobotContainer {
      */
     public void updateDriveSettings() {
         // Skip if tuning is disabled
-        if (!ENABLE_DRIVER_TUNING) {
+        if (!Constants.ENABLE_DRIVER_CONTROLLER_TUNING) {
             return;
         }
 
