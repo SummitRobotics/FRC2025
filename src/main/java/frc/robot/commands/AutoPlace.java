@@ -83,6 +83,17 @@ public class AutoPlace extends SequentialCommandGroup {
         }
     }
 
+    public static SuperstructurePreset getScrubPose(HexSide hexSide) {
+        return switch(hexSide) {
+            case ONE -> SuperstructurePreset.L3_SCRUB;
+            case TWO -> SuperstructurePreset.STOW_UPPER;
+            case THREE -> SuperstructurePreset.L3_SCRUB;
+            case FOUR -> SuperstructurePreset.STOW_UPPER;
+            case FIVE -> SuperstructurePreset.L3_SCRUB;
+            case SIX -> SuperstructurePreset.STOW_UPPER;
+        };
+    }
+
     // Create the constraints to use while pathfinding
     private PathConstraints constraintsSlow = new PathConstraints(
             1, 1.5,

@@ -15,8 +15,6 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -26,7 +24,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -116,7 +113,7 @@ public class RobotContainer {
     private final SendableChooser<SuperstructurePreset> lChooser;
     private final SendableChooser<HexSide> hexSideChooser;
     private final SendableChooser<Side> leftRightChooser;
-    private final SendableChooser<SuperstructurePreset> scrubChooser;
+    private final SendableChooser<Boolean> scrubChooser;
 
     // Auto
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
@@ -163,11 +160,11 @@ public class RobotContainer {
         lChooser = new SendableChooser<SuperstructurePreset>();
         hexSideChooser = new SendableChooser<HexSide>();
         leftRightChooser = new SendableChooser<Side>();
-        scrubChooser = new SendableChooser<SuperstructurePreset>();
-        lChooser.addOption("L1", SuperstructurePreset.L1);
-        lChooser.addOption("L2", SuperstructurePreset.L2);
-        lChooser.addOption("L3", SuperstructurePreset.L3);
+        scrubChooser = new SendableChooser<Boolean>();
         lChooser.addOption("L4", SuperstructurePreset.L4);
+        lChooser.addOption("L3", SuperstructurePreset.L3);
+        lChooser.addOption("L2", SuperstructurePreset.L2);
+        lChooser.addOption("L1", SuperstructurePreset.L1);
         lChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
         hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
         hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
@@ -177,23 +174,57 @@ public class RobotContainer {
         hexSideChooser.addOption("6", AutoPlace.HexSide.SIX);
         leftRightChooser.setDefaultOption("A", AutoPlace.Side.LEFT);
         leftRightChooser.addOption("B", AutoPlace.Side.RIGHT);
-        scrubChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
-        scrubChooser.addOption("Low", SuperstructurePreset.STOW_UPPER);
-        scrubChooser.addOption("High", SuperstructurePreset.L3_SCRUB);
+        scrubChooser.setDefaultOption("No", false);
+        scrubChooser.addOption("Yes", true);
         pushOverLineChooser.setDefaultOption("No", false);
         pushOverLineChooser.addOption("Yes", true);
         // Rebind upon scoring position selection change
         lChooser.onChange((SuperstructurePreset l) -> {
-            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(l, hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected()), "", false, false));
+            driverController.leftBumper().whileTrue(new AutoPlace(
+                drivetrain,
+                superstructure,
+                scrubber,
+                new Node(
+                    l,
+                    hexSideChooser.getSelected(),
+                    leftRightChooser.getSelected(),
+                    (scrubChooser.getSelected().booleanValue() ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE)
+                ), "", false, false));
         });
         hexSideChooser.onChange((HexSide hexSide) -> {
-            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSide, leftRightChooser.getSelected(), scrubChooser.getSelected()), "", false, false));
+            driverController.leftBumper().whileTrue(new AutoPlace(
+                drivetrain,
+                superstructure,
+                scrubber,
+                new Node(
+                    lChooser.getSelected(),
+                    hexSide, leftRightChooser.getSelected(),
+                    (scrubChooser.getSelected().booleanValue() ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE)
+                ), "", false, false));
         });
         leftRightChooser.onChange((Side leftRight) -> {
-            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRight, scrubChooser.getSelected()), "", false, false));
+            driverController.leftBumper().whileTrue(new AutoPlace(
+                drivetrain,
+                superstructure,
+                scrubber,
+                new Node(
+                    lChooser.getSelected(),
+                    hexSideChooser.getSelected(),
+                    leftRight,
+                    (scrubChooser.getSelected().booleanValue() ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE)
+                ), "", false, false));
         });
-        scrubChooser.onChange((SuperstructurePreset scrub) -> {
-            driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrub), "", false, false));
+        scrubChooser.onChange((Boolean doScrub) -> {
+            driverController.leftBumper().whileTrue(new AutoPlace(
+                drivetrain,
+                superstructure,
+                scrubber,
+                new Node(
+                    lChooser.getSelected(),
+                    hexSideChooser.getSelected(),
+                    leftRightChooser.getSelected(),
+                    (doScrub ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE)
+                ), "", false, false));
         });
 
         // Combinatoric auto-chooser thing
@@ -281,7 +312,7 @@ public class RobotContainer {
         // Add further auto options (may be best moved to a separate file)
         try {
             autoChooser.addOption(
-                "Predefined Left",
+                "Left",
                 new SequentialCommandGroup(
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "", false, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftA"),
@@ -292,7 +323,11 @@ public class RobotContainer {
                 )
             );
             autoChooser.addOption(
-                "Predefined Right",
+                "Center",
+                new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FOUR, Side.LEFT, SuperstructurePreset.STOW_UPPER), "", true, true)
+            );
+            autoChooser.addOption(
+                "Right",
                 new SequentialCommandGroup(
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.THREE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "", false, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightA"),
@@ -455,7 +490,10 @@ public class RobotContainer {
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber, new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected()), "", false, false));
+        driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber,
+            new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(),
+            scrubChooser.getSelected().booleanValue() ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE
+        ), "", false, false));
         driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, () -> AutoPickup.getCoralSide(drivetrain.getState().Pose)));
         driverController.x().whileTrue(new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight()));
         // Put upward after receive
