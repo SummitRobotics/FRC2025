@@ -99,7 +99,7 @@ public class AutoPlace extends SequentialCommandGroup {
             1, 1.5,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
     private PathConstraints constraintsFast = new PathConstraints(
-        4, 4,
+        4, 3.5,
         360, 360
     );
 

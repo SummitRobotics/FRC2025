@@ -99,7 +99,7 @@ public class Constants {
             CLIMB_ID = 17,
             SENSOR_ID = 0;
         public static final double
-            P = 6,
+            P = 20,
             I = 0.4,
             D = 0,
             kG = 0,
@@ -108,10 +108,10 @@ public class Constants {
             kA = 0,
             MAX_ROTATIONS = 210,
             BACK_ROTATIONS = -17.5,
-            MAX_VELOCITY_IN = 30,
-            MAX_ACCEL_IN = 60,
-            MAX_VELOCITY_OUT = 200,
-            MAX_ACCEL_OUT = 180;
+            MAX_VELOCITY_IN = 180,
+            MAX_ACCEL_IN = 200,
+            MAX_VELOCITY_OUT = 300,
+            MAX_ACCEL_OUT = 200;
     }
 
     public static class LED {

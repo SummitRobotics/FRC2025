@@ -66,13 +66,13 @@ public class Climb extends SubsystemBase {
     }
 
     public Command lift() {
-        return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT)
+        return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN)
             .until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }
 
     public Command retract() {
-        return setWithMotionProfile(() -> 0, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT)
+        return setWithMotionProfile(() -> 0, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN)
             .until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }

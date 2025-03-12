@@ -221,9 +221,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         configureAutoBuilder();
-
-        // Seed orientation for MT2
-        // getPigeon2().setYaw(180);
     }
 
     /**
