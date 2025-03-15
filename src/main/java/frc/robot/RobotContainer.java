@@ -486,6 +486,16 @@ public class RobotContainer {
                 superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
             )
         );
+        gunnerController.b().onTrue(
+            new SequentialCommandGroup(
+                scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations).until(scrubber::safe),
+                superstructure.setPresetWithBeltOverride(
+                    SuperstructurePreset.STOW_LOWER,
+                    () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0),
+                    () -> (gunnerController.leftBumper().getAsBoolean() ? -1 : 0) + (gunnerController.rightBumper().getAsBoolean() ? 1 : 0)
+                )
+            )  
+        );
 
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 

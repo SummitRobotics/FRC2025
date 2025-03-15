@@ -44,8 +44,8 @@ public class Superstructure extends SubsystemBase {
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
         L4(14.85209, 0.091666, 0, 0, "4", Button.L4_PRESET),
         L1_GO(L1.elevatorRotations, L1.pivotRotations, -1, -1, "1", null),
-        L2_GO(L2.elevatorRotations, L2.pivotRotations, 1, 1, "2", null),
-        L3_GO(L3.elevatorRotations, L3.pivotRotations, 1, 1, "3", null),
+        L2_GO(L2.elevatorRotations, L2.pivotRotations, 0.85, 0.85, "2", null),
+        L3_GO(L3.elevatorRotations, L3.pivotRotations, 0.85, 0.85, "3", null),
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
         L4_INTERMEDIATE(L3.elevatorRotations + 2, STOW_UPPER.pivotRotations, 0, 0, "Intermediate", null),
         MANUAL_OVERRIDE(0.3, 0, 0, 0, "None", null); // being manually overridden to something
