@@ -189,7 +189,14 @@ public class RobotContainer {
                     hexSideChooser.getSelected(),
                     leftRightChooser.getSelected(),
                     (scrubChooser.getSelected().booleanValue() ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE)
-                ), "", false, false));
+                ), "", false, false)
+                    .finallyDo(() -> {
+                        // CommandScheduler.getInstance().schedule(
+                        superstructure.setDefaultCommand(
+                            superstructure.setPreset(l == SuperstructurePreset.L1 ? SuperstructurePreset.STOW_LOWER : SuperstructurePreset.STOW_UPPER)
+                        );
+                    })
+                );
         });
         hexSideChooser.onChange((HexSide hexSide) -> {
             driverController.leftBumper().whileTrue(new AutoPlace(
@@ -200,7 +207,14 @@ public class RobotContainer {
                     lChooser.getSelected(),
                     hexSide, leftRightChooser.getSelected(),
                     (scrubChooser.getSelected().booleanValue() ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE)
-                ), "", false, false));
+                ), "", false, false)
+                    .finallyDo(() -> {
+                        // CommandScheduler.getInstance().schedule(
+                        superstructure.setDefaultCommand(
+                            superstructure.setPreset(lChooser.getSelected() == SuperstructurePreset.L1 ? SuperstructurePreset.STOW_LOWER : SuperstructurePreset.STOW_UPPER)
+                        );
+                    })
+                );
         });
         leftRightChooser.onChange((Side leftRight) -> {
             driverController.leftBumper().whileTrue(new AutoPlace(
@@ -212,7 +226,14 @@ public class RobotContainer {
                     hexSideChooser.getSelected(),
                     leftRight,
                     (scrubChooser.getSelected().booleanValue() ? AutoPlace.getScrubPose(hexSideChooser.getSelected()) : SuperstructurePreset.MANUAL_OVERRIDE)
-                ), "", false, false));
+                ), "", false, false)
+                    .finallyDo(() -> {
+                        // CommandScheduler.getInstance().schedule(
+                        superstructure.setDefaultCommand(
+                            superstructure.setPreset(lChooser.getSelected() == SuperstructurePreset.L1 ? SuperstructurePreset.STOW_LOWER : SuperstructurePreset.STOW_UPPER)
+                        );
+                    })
+                );
         });
         scrubChooser.onChange((Boolean doScrub) -> {
             driverController.leftBumper().whileTrue(new AutoPlace(
@@ -482,6 +503,11 @@ public class RobotContainer {
         // Alternative receive entry by the driver
         driverController.rightBumper().onTrue(
             new SequentialCommandGroup(
+                new InstantCommand(() -> {
+                    superstructure.setDefaultCommand(
+                        superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
+                    );
+                }),
                 scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations).until(scrubber::safe),
                 superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
             )

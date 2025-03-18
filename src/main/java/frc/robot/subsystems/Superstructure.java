@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -13,10 +14,12 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -38,7 +41,7 @@ public class Superstructure extends SubsystemBase {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
         STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.8, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
         RECEIVE(3.4298038440, -0.165, 0, 0, "Receive", Button.RECEIVE_PRESET),
-        L1(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "1", Button.L1_PRESET),
+        L1(0.1, Constants.Manipulator.MIN_ROTATIONS + 0.05, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.145408, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
@@ -261,11 +264,33 @@ public class Superstructure extends SubsystemBase {
     // Use sensors to automatically hold the note in the middle
     public Command setPresetWithAutoCenter(SuperstructurePreset preset) {
         DoubleSupplier beltSupplier = new DoubleSupplier() {
+            boolean detected = false;
+            boolean backedUp = false;
             @Override
             public double getAsDouble() {
-                if (getCoralSensorPlace().negate().getAsBoolean()) return 0.55;
-                if (getCoralSensorIntake().negate().getAsBoolean()) return -0.55;
-                return 0;
+                if (getCoralSensorIntake().negate().getAsBoolean()) {
+                    detected = false;
+                    backedUp = false;
+                }
+                if (!detected) {
+                    if (getCoralSensorPlace().negate().getAsBoolean()) return 0.55;
+                    if (getCoralSensorIntake().negate().getAsBoolean()) return -0.55;
+                    detected = true;
+                    return 0;
+                } else {
+                    if (!backedUp) {
+                        // back until we lose the sensor
+                        if (getCoralSensorPlace().negate().getAsBoolean()) {
+                            backedUp = true;
+                            return 0;
+                        }
+                        return -0.05;
+                    } else {
+                        // Forward until we gain the sensor again
+                        if (getCoralSensorPlace().negate().getAsBoolean()) return 0.05;
+                        return 0;
+                    }
+                }
             }
         };
         return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);
@@ -273,10 +298,16 @@ public class Superstructure extends SubsystemBase {
 
     public Command setPresetWithFarSpit(SuperstructurePreset preset) {
         DoubleSupplier beltSupplier = new DoubleSupplier() {
+            Timer timer = new Timer();
             @Override
             public double getAsDouble() {
-                if (getCoralSensorIntake().negate().getAsBoolean() && getCoralSensorPlace().getAsBoolean()) return 0;
-                return 1;
+                // TODO - timer does not work
+                if (!timer.isRunning()) timer.restart();
+                if (timer.get() > 0.2) {
+                    timer.stop();
+                    return 0;
+                }
+                return 0.2;
             }
         };
         return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);

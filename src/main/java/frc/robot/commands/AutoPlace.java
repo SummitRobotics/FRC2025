@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
@@ -142,7 +143,11 @@ public class AutoPlace extends SequentialCommandGroup {
                 new ConditionalCommand(
                     // If going to L1, L2, or L3, set the superstructure to the desired position
                     new ConditionalCommand(
-                        superstructure.setPresetWithAutoCenter(node.l),
+                        new ConditionalCommand(
+                            superstructure.setPresetWithAutoCenter(node.l),
+                            superstructure.setPresetWithFarSpit(node.l),
+                            () -> node.l != SuperstructurePreset.L1
+                        ),
                         superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER),
                         () -> node.l != SuperstructurePreset.MANUAL_OVERRIDE
                     ),
@@ -163,21 +168,16 @@ public class AutoPlace extends SequentialCommandGroup {
             new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.4 : 0),
             // Shoot out the coral
             new ParallelDeadlineGroup(
-                // Rum until the shoot sensors are cleared, or for a timeout if going to L1
-                node.l == SuperstructurePreset.L1 ?
-                    new WaitCommand(2) :
-                    new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
-                new ConditionalCommand(
-                    // Not going to L1; drive the shooter
-                    superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l)),
-                    // Going to L1; run the L1 shoot sequence
-                    new SequentialCommandGroup(
-                        // Ready the coral for shooting (pulling it half-way in) with a timeout
-                        superstructure.setPresetWithFarSpit(SuperstructurePreset.L1).withTimeout(1),
-                        // Drive the shooter
-                        superstructure.setPreset(SuperstructurePreset.L1_GO)
-                    ),
-                    () -> node.l != SuperstructurePreset.L1
+                // Run until the shoot sensors are cleared, or for a timeout if going to L1
+                new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
+                // drive the shooter
+                new SequentialCommandGroup(
+                    // new ConditionalCommand(
+                        // superstructure.setPresetWithFarSpit(node.l),
+                        // Commands.none(),
+                        // () -> node.l == SuperstructurePreset.L1
+                    // ).withTimeout(0.2),
+                    superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
                 )
             )
         );
