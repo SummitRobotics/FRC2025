@@ -287,7 +287,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         for (String limelightName : limelightNames) {
             LimelightHelpers.SetRobotOrientation(limelightName, getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
             LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
-            if (mt2 != null && mt2.tagCount > 0 && getPigeon2().getAngularVelocityZDevice().getValueAsDouble() <= 720) {
+            // if (mt2 != null) System.out.println("Area: " + mt2.avgTagArea);
+            if (mt2 != null && mt2.tagCount > 0 && getPigeon2().getAngularVelocityZDevice().getValueAsDouble() <= 720 && (mt2.avgTagArea > 0.5 || DriverStation.isDisabled())) {
                 setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));
                 addVisionMeasurement(
                     mt2.pose,
@@ -314,7 +315,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     // PID constants for translation
                     new PIDConstants(8.5, 0, 0),
                     // PID constants for rotation
-                    new PIDConstants(10, 0, 0)
+                    new PIDConstants(15, 0, 0)
                 ),
                 config,
                 // Assume the path needs to be flipped for Red vs Blue, this is normally the case
