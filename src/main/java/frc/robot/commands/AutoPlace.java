@@ -10,7 +10,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -137,7 +136,7 @@ public class AutoPlace extends SequentialCommandGroup {
             new SequentialCommandGroup(
                 new ConditionalCommand(
                     superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE).withTimeout(1),
-                    new InstantCommand(() -> {}),
+                    Commands.none(),
                     () -> manipulatorSafe
                 ),
                 new ConditionalCommand(
@@ -145,7 +144,10 @@ public class AutoPlace extends SequentialCommandGroup {
                     new ConditionalCommand(
                         new ConditionalCommand(
                             superstructure.setPresetWithAutoCenter(node.l),
-                            superstructure.setPresetWithFarSpit(node.l),
+                            new SequentialCommandGroup(
+                                superstructure.setPresetWithBeltOverride(node.l, () -> 0.3, () -> 0.3).withTimeout(0),
+                                superstructure.setPreset(node.l)
+                            ),
                             () -> node.l != SuperstructurePreset.L1
                         ),
                         superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER),
@@ -171,14 +173,14 @@ public class AutoPlace extends SequentialCommandGroup {
                 // Run until the shoot sensors are cleared, or for a timeout if going to L1
                 new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
                 // drive the shooter
-                new SequentialCommandGroup(
+                // new SequentialCommandGroup(
                     // new ConditionalCommand(
                         // superstructure.setPresetWithFarSpit(node.l),
                         // Commands.none(),
                         // () -> node.l == SuperstructurePreset.L1
                     // ).withTimeout(0.2),
-                    superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
-                )
+                superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
+                // )
             )
         );
 

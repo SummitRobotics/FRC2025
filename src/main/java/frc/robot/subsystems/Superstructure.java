@@ -14,12 +14,10 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -291,23 +289,6 @@ public class Superstructure extends SubsystemBase {
                         return 0;
                     }
                 }
-            }
-        };
-        return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);
-    }
-
-    public Command setPresetWithFarSpit(SuperstructurePreset preset) {
-        DoubleSupplier beltSupplier = new DoubleSupplier() {
-            Timer timer = new Timer();
-            @Override
-            public double getAsDouble() {
-                // TODO - timer does not work
-                if (!timer.isRunning()) timer.restart();
-                if (timer.get() > 0.2) {
-                    timer.stop();
-                    return 0;
-                }
-                return 0.2;
             }
         };
         return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);

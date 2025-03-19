@@ -288,7 +288,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             LimelightHelpers.SetRobotOrientation(limelightName, getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
             LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
             if (mt2 != null && mt2.tagCount > 0 && getPigeon2().getAngularVelocityZDevice().getValueAsDouble() <= 720) {
-                setVisionMeasurementStdDevs(VecBuilder.fill(1.0, 1.0, 9999999));
+                setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));
                 addVisionMeasurement(
                     mt2.pose,
                     Utils.fpgaToCurrentTime(mt2.timestampSeconds)

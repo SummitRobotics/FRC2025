@@ -33,12 +33,6 @@
           "data": {
             "pathName": "ThreePieceRightD"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "ThreePieceRightE"
-          }
         }
       ]
     }
