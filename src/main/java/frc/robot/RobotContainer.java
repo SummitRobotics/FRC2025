@@ -115,19 +115,13 @@ public class RobotContainer {
     private final SendableChooser<Side> leftRightChooser;
     private final SendableChooser<Boolean> scrubChooser;
     private final SendableChooser<Boolean> reefChoiceAssist;
+    private HexSide lastReef;
+    private Runnable rebindAutoPlace;
 
     // Auto
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
     private final SendableChooser<AutoSegment> autoSegmentChoice;
-    // private Node autoNodeOne = new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
-    // private CoralStationSide autoStationOne = CoralStationSide.LEFT;
-    // private Node autoNodeTwo = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE);
-    // private CoralStationSide autoStationTwo = CoralStationSide.LEFT;
-    // private Node autoNodeThree = new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE);
-    // private CoralStationSide autoStationThree = CoralStationSide.LEFT;
     private Timer flipUpTimer = new Timer();
-    // private SendableChooser<Boolean> pushOverLineChooser = new SendableChooser<Boolean>();
-    // private boolean pushOverLine = false;
 
     // Cycle timer variables
     private final Timer cycleTimer = new Timer();
@@ -178,12 +172,11 @@ public class RobotContainer {
         leftRightChooser.addOption("B", AutoPlace.Side.RIGHT);
         scrubChooser.setDefaultOption("No", false);
         scrubChooser.addOption("Yes", true);
-        // pushOverLineChooser.setDefaultOption("No", false);
-        // pushOverLineChooser.addOption("Yes", true);
         // Rebind upon scoring position selection change
         reefChoiceAssist.setDefaultOption("No", false);
         reefChoiceAssist.addOption("Yes", true);
-        Runnable rebindAutoPlace = () -> {
+        lastReef = hexSideChooser.getSelected();
+        rebindAutoPlace = () -> {
             driverController.leftBumper().whileTrue(new AutoPlace(
                 drivetrain,
                 superstructure,
@@ -204,7 +197,6 @@ public class RobotContainer {
                 );
         };
         lChooser.onChange((SuperstructurePreset l) -> rebindAutoPlace.run());
-        hexSideChooser.onChange((HexSide hexSide) -> rebindAutoPlace.run());
         leftRightChooser.onChange((Side leftRight) -> rebindAutoPlace.run());
         scrubChooser.onChange((Boolean doScrub) -> rebindAutoPlace.run());
 
@@ -217,60 +209,12 @@ public class RobotContainer {
         autoSegmentChoice.setDefaultOption("Do First", AutoSegment.DO_FIRST);
         autoSegmentChoice.addOption("Do Second", AutoSegment.DO_SECOND);
         autoSegmentChoice.addOption("Do Third", AutoSegment.DO_THIRD);
-        /*WrapperCommand updateAutoChoice = new InstantCommand(() -> {
-            Node result = new Node(lChooser.getSelected(), hexSideChooser.getSelected(), leftRightChooser.getSelected(), scrubChooser.getSelected());
-            pushOverLine = pushOverLineChooser.getSelected();
-            switch (autoSegmentChoice.getSelected()) {
-                case DO_FIRST: {
-                    autoNodeOne = result;
-                    autoStationOne = autoCoralStationChoice.getSelected();
-                    break;
-                }
-                case DO_SECOND: {
-                    autoNodeTwo = result;
-                    autoStationTwo = autoCoralStationChoice.getSelected();
-                    break;
-                }
-                case DO_THIRD: {
-                    autoNodeThree = result;
-                    autoStationThree = autoCoralStationChoice.getSelected();
-                    break;
-                }
-            }
-            autoChooser.addOption("Combination Auto", new SequentialCommandGroup(
-                For getting move points in auto by shoving a positioned allied team backwards over the line, optionally
-                new ConditionalCommand(
-                    new InstantCommand(() -> drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-2))).repeatedly().withTimeout(0.25),
-                    new InstantCommand(() -> {}),
-                    () -> pushOverLine
-                ),
-                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeOne),
-                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationOne),
-                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeTwo),
-                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationTwo),
-                new AutoPlace(drivetrain, superstructure, scrubber, autoNodeThree),
-                new AutoPickup(drivetrain, superstructure, scrubber, () -> autoStationThree)
-            ));
-        }).ignoringDisable(true);*/
-        // SmartDashboard.putData("Auto Status", new Sendable() {
-            // @Override
-            // public void initSendable(SendableBuilder builder) {
-                // builder.addStringProperty("Push Over Line", () -> pushOverLine ? "Yes" : "No", null);
-                // builder.addStringProperty("Segment 1", () -> autoNodeOne.toString() + ", Coral Station: " + autoStationOne.pathName, null);
-                // builder.addStringProperty("Segment 2", () -> autoNodeTwo.toString() + ", Coral Station: " + autoStationTwo.pathName, null);
-                // builder.addStringProperty("Segment 3", () -> autoNodeThree.toString() + ", Coral Station: " + autoStationThree.pathName, null);
-            // }
-        // });
-        // SmartDashboard.putData("Write Auto Segment", updateAutoChoice);
-        // SmartDashboard.putData("Auto Coral Station Choice", autoCoralStationChoice);
-        // SmartDashboard.putData("Auto Segment Chooser", autoSegmentChoice);
         SmartDashboard.putData("L Chooser", lChooser);
         SmartDashboard.putData("Hex Side Chooser", hexSideChooser);
         SmartDashboard.putData("Left-Right Chooser", leftRightChooser);
         SmartDashboard.putData("Scrub Chooser", scrubChooser);
         SmartDashboard.putData("Auto Chooser", autoChooser);
         SmartDashboard.putData("Reef Choice Assist", reefChoiceAssist);
-        // SmartDashboard.putData("Push Over Line Chooser", pushOverLineChooser);
         if (Constants.DEBUG_LOG_ENABLED) {
             SmartDashboard.putData("Superstructure", superstructure);
             SmartDashboard.putData("Drivetrain", drivetrain);
@@ -546,6 +490,13 @@ public class RobotContainer {
 
     public void robotPeriodic() {
         buttonBox.sendMessage();
+
+        // Rebinds for reef assist
+        if (lastReef != getHex()) {
+            rebindAutoPlace.run();
+            lastReef = getHex();
+        }
+
         // Update Field2d object
         field.setRobotPose(drivetrain.getState().Pose);
         boolean left = leftRightChooser.getSelected() == Side.LEFT;
