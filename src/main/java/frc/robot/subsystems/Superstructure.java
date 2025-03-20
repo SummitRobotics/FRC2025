@@ -43,7 +43,7 @@ public class Superstructure extends SubsystemBase {
         L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.145408, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
-        L4(14.85209, 0.091666, 0, 0, "4", Button.L4_PRESET),
+        L4(14.85209, 0.08333, 0, 0, "4", Button.L4_PRESET),
         L1_GO(L1.elevatorRotations, L1.pivotRotations, -1, -1, "1", null),
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 0.85, 0.85, "2", null),
         L3_GO(L3.elevatorRotations, L3.pivotRotations, 0.85, 0.85, "3", null),

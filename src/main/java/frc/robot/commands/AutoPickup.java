@@ -2,7 +2,6 @@ package frc.robot.commands;
 
 import java.util.function.Supplier;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -14,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
@@ -110,11 +108,11 @@ public class AutoPickup extends SequentialCommandGroup {
                                 ),
                                 AutoBuilder.followPath(suppliedPath),
                                 () -> suppliedPathName.isEmpty()
-                            ),
+                            )
                             // Path may end with a target velocity, to drive robot into station, do so for a short time
-                            new WaitCommand(0.5),
+                            // new WaitCommand(0.5),
                             // Stop the robot from moving into station, the robot will move backwards after coral intake so OK if never reach this
-                            new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0)))
+                            // new InstantCommand(() -> drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0)))
                         )
                     ).withDeadline(
                         // Wait until the coral intake sensor is triggered (the coral place sensor may not be triggered)

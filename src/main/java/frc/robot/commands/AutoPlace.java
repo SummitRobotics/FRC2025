@@ -203,7 +203,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 // Move superstructure to the desired position and shoot the coral
                 addCommands(place);
             }
-            if (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) {
+            if (node.scrub != SuperstructurePreset.MANUAL_OVERRIDE && node.l != SuperstructurePreset.L1) {
                 // Scrub an algea
                 addCommands(scrub);
             }
