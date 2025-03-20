@@ -85,12 +85,20 @@ public class RobotContainer {
             .withRotationalDeadband(MaxAngularRate * driveRequestTransDeadband)
             .withDriveRequestType(currentDriveRequestType);
 
+    private SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
+            .withDeadband(MaxSpeed * driveRequestTransDeadband)
+            .withRotationalDeadband(MaxAngularRate * driveRequestTransDeadband)
+            .withDriveRequestType(currentDriveRequestType);
+
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     // Controllers
     private final CommandControllerWrapper driverController;
     // private final CommandControllerWrapper gunnerController;
     // private final ButtonBox buttonBox = new ButtonBox(Constants.OI.BUTTON_BOX);
+
+    // Add a boolean to track the current drive mode
+    private boolean isFieldCentric = true;
 
     // Response curves for joystick inputs
     private JoystickResponseCurve driveCurve =
@@ -383,6 +391,13 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
+        // Configure the X button to toggle drive modes
+        driverController.x().onTrue(new InstantCommand(() -> {
+            isFieldCentric = !isFieldCentric; // Toggle the drive mode
+            System.out.println("Drive mode switched to: " + (isFieldCentric ? "Field-Centric" : "Robot-Centric"));
+            SmartDashboard.putBoolean("Drive Mode: Field-Centric", isFieldCentric); // Publish to dashboard
+        }));
+
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
@@ -397,10 +412,17 @@ public class RobotContainer {
                 leftX = driveCurve.apply(leftX);
                 rightX = -rotationCurve.apply(rightX);
 
-                // Scale to m/s and rad/s and apply to the swerve request
-                return drive.withVelocityX(leftY * MaxSpeed)
-                            .withVelocityY(leftX * MaxSpeed)
-                            .withRotationalRate(rightX * MaxAngularRate);
+                // Scale to m/s and rad/s and apply to the appropriate swerve request
+                if (isFieldCentric) {
+                    return drive.withVelocityX(leftY * MaxSpeed)
+                                .withVelocityY(leftX * MaxSpeed)
+                                .withRotationalRate(rightX * MaxAngularRate);
+                } else {
+                    /// NOTE: axis are messed here
+                    return driveRobotCentric.withVelocityX(-leftX * MaxSpeed)
+                                            .withVelocityY(leftY * MaxSpeed)
+                                            .withRotationalRate(rightX * MaxAngularRate);
+                }
             })
         );
         // superstructure.setDefaultCommand(
