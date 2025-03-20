@@ -5,63 +5,7 @@
     {
       "name": "Teleoperated",
       "grid_layout": {
-        "layouts": [
-          {
-            "title": "Auto Status",
-            "x": 0.0,
-            "y": 640.0,
-            "width": 512.0,
-            "height": 256.0,
-            "type": "List Layout",
-            "properties": {
-              "label_position": "TOP"
-            },
-            "children": [
-              {
-                "title": "Segment 1",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Auto Status/Segment 1",
-                  "period": 0.06,
-                  "data_type": "string",
-                  "show_submit_button": false
-                }
-              },
-              {
-                "title": "Segment 2",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Auto Status/Segment 2",
-                  "period": 0.06,
-                  "data_type": "string",
-                  "show_submit_button": false
-                }
-              },
-              {
-                "title": "Segment 3",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Auto Status/Segment 3",
-                  "period": 0.06,
-                  "data_type": "string",
-                  "show_submit_button": false
-                }
-              }
-            ]
-          }
-        ],
+        "layouts": [],
         "containers": [
           {
             "title": "L Chooser",
@@ -132,50 +76,18 @@
             }
           },
           {
-            "title": "Write Auto Segment",
-            "x": 1408.0,
-            "y": 768.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Write Auto Segment",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "Auto Segment Chooser",
-            "x": 1408.0,
-            "y": 640.0,
-            "width": 384.0,
-            "height": 128.0,
-            "type": "Split Button Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/Auto Segment Chooser",
-              "period": 0.06
-            }
-          },
-          {
-            "title": "Auto Coral Station Choice",
-            "x": 1152.0,
-            "y": 640.0,
+            "title": "Reef Choice Assist",
+            "x": 1024.0,
+            "y": 512.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Split Button Chooser",
             "properties": {
-              "topic": "/SmartDashboard/Auto Coral Station Choice",
+              "topic": "/SmartDashboard/Reef Choice Assist",
               "period": 0.06
             }
           }
         ]
-      }
-    },
-    {
-      "name": "Autonomous",
-      "grid_layout": {
-        "layouts": [],
-        "containers": []
       }
     }
   ]

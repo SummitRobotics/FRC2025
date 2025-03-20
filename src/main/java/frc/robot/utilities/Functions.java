@@ -2,12 +2,12 @@ package frc.robot.utilities;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,11 +31,11 @@ public class Functions {
      * @return the clamped double
      */
     public static double clampDouble(double in, double max, double min) {
-      if (in > max) {
-        return max;
-      } else {
-        return Math.max(in, min);
-      }
+        if (in > max) {
+            return max;
+        } else {
+            return Math.max(in, min);
+        }
     }
 
     /**
@@ -45,8 +45,8 @@ public class Functions {
      * @return The value with its magnitude limited but sign preserved
      */
     public static double clampMagnitude(double value, double maxMagnitude) {
-      // Preserves sign while clamping magnitude
-      return Math.signum(value) * Math.min(Math.abs(value), maxMagnitude);
+        // Preserves sign while clamping magnitude
+        return Math.signum(value) * Math.min(Math.abs(value), maxMagnitude);
     }
 
     /**
@@ -58,9 +58,9 @@ public class Functions {
      */
     public static double deadzone(double deadRange, double in) {
         if (Math.abs(in) < deadRange) {
-          return 0;
+            return 0;
         } else {
-          return in;
+            return in;
         }
     }
 
@@ -85,14 +85,14 @@ public class Functions {
      */
     public static <T> void saveObjectToFile(T object, String path) {
         try {
-          FileOutputStream fileOut = new FileOutputStream(path);
-          ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-          objectOut.writeObject(object);
-          objectOut.close();
-          fileOut.close();
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(object);
+            objectOut.close();
+            fileOut.close();
         } catch (Exception ex) {
-          ex.printStackTrace();
-          throw (new RuntimeException("saving failed"));
+            ex.printStackTrace();
+            throw (new RuntimeException("saving failed"));
         }
     }
 
@@ -135,7 +135,7 @@ public class Functions {
         Collections.sort(toBeAveraged);
         double mean = 0;
         for (double i : toBeAveraged) {
-          mean += i;
+            mean += i;
         }
         mean /= 3;
         final double asfasd = mean;
@@ -155,11 +155,11 @@ public class Functions {
         double out = Double.NaN;
         double minError = Double.POSITIVE_INFINITY;
         for (double x : points) {
-          double error = Math.abs(x - value);
-          if (error < minError) {
-            minError = error;
-            out = x;
-          }
+            double error = Math.abs(x - value);
+            if (error < minError) {
+                minError = error;
+                out = x;
+            }
         }
         return out;
     }
@@ -219,5 +219,10 @@ public class Functions {
             8 - pose.getY(),
             pose.getRotation().plus(Rotation2d.fromDegrees(180))
         );
+    }
+
+    public static Translation2d mirrorPoseToRed(Translation2d translation) {
+        Pose2d pose = mirrorPoseToRed(new Pose2d(translation.getX(), translation.getY(), Rotation2d.fromDegrees(0)));
+        return new Translation2d(pose.getX(), pose.getY());
     }
 }

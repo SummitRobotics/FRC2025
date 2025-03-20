@@ -6,7 +6,10 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -18,6 +21,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
+import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Constants;
 
 public class AutoPlace extends SequentialCommandGroup {
@@ -35,6 +39,9 @@ public class AutoPlace extends SequentialCommandGroup {
         FIVE_RIGHT = new Pose2d(4.992 /*+ 0.01905 * Math.cos(4 * Math.PI / 3)*/, 5.235 /*+ 0.01905 * Math.sin(4 * Math.PI / 3)*/, Rotation2d.fromDegrees(240)),
         SIX_LEFT = new Pose2d(3.973 /*+ 0.01905 * Math.cos(5 * Math.PI / 3)*/, 5.231 /*+ 0.01905 * Math.sin(5 * Math.PI / 3)*/, Rotation2d.fromDegrees(300)),
         SIX_RIGHT = new Pose2d(3.697 /*+ 0.01905 * Math.cos(5 * Math.PI / 3)*/, 5.061 /*+ 0.01905 * Math.sin(5 * Math.PI / 3)*/, Rotation2d.fromDegrees(300));
+    public static final Translation2d
+        reefCenterBlue = new Translation2d(4.488, 4.00),
+        reefCenterRed = Functions.mirrorPoseToRed(reefCenterBlue);
 
     public enum HexSide {
         ONE("1", ONE_LEFT, ONE_RIGHT),
@@ -92,6 +99,21 @@ public class AutoPlace extends SequentialCommandGroup {
             case FIVE -> SuperstructurePreset.L3_SCRUB;
             case SIX -> SuperstructurePreset.STOW_UPPER;
         };
+    }
+
+    public static HexSide chooseReefSide(Pose2d drivetrainPose) {
+        boolean blue = (!DriverStation.getAlliance().isPresent() || DriverStation.getAlliance().get() == Alliance.Blue);
+        Translation2d reefCenter = blue ? reefCenterBlue : reefCenterRed;
+        double angle = Math.toDegrees(Math.atan2(
+            (drivetrainPose.getX() - reefCenter.getX()) * (blue ? 1 : -1),
+            (reefCenter.getY() - drivetrainPose.getY()) * (blue ? 1 : -1)
+        ));
+        if (angle > -120 && angle <= -60) return HexSide.ONE;
+        if (angle > -60 && angle <= 0) return HexSide.TWO;
+        if (angle > 0 && angle <= 60) return HexSide.THREE;
+        if (angle > 60 && angle <= 120) return HexSide.FOUR;
+        if (angle > 120 && angle <= 180) return HexSide.FIVE;
+        return HexSide.SIX;
     }
 
     // Create the constraints to use while pathfinding
