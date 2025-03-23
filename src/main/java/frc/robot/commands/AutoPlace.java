@@ -193,7 +193,8 @@ public class AutoPlace extends SequentialCommandGroup {
             // Shoot out the coral
             new ParallelDeadlineGroup(
                 // Run until the shoot sensors are cleared, or for a timeout if going to L1
-                new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate())),
+                new WaitUntilCommand(superstructure.getCoralSensorIntake().negate().and(superstructure.getCoralSensorPlace().negate()))
+                    .withTimeout(2),
                 // drive the shooter
                 // new SequentialCommandGroup(
                     // new ConditionalCommand(
