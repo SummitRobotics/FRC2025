@@ -32,7 +32,7 @@ import frc.robot.utilities.lists.Constants;
 public class Superstructure extends SubsystemBase {
 
     // State machine with encoder presets
-    // Those with "go" in the name are the spitting states
+    // Those with "GO" in the name are the spitting states
     // Those with "B" in the name are the backwards placement states
     public static enum SuperstructurePreset {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
@@ -43,7 +43,7 @@ public class Superstructure extends SubsystemBase {
         L3(4.193848, 0.137075, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
         L4(14.85209, 0.08333, 0, 0, "4", Button.L4_PRESET),
-        L4B(15.5, 0.325, 0, 0, "4B", Button.L4_BACKWARDS),
+        L4B(15.7, 0.325, 0, 0, "4B", Button.L4_BACKWARDS),
         L1_GO(L1.elevatorRotations, L1.pivotRotations, -1, -1, "1", null),
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 0.85, 0.85, "2", null),
         L3_GO(L3.elevatorRotations, L3.pivotRotations, 0.85, 0.85, "3", null),
@@ -309,7 +309,7 @@ public class Superstructure extends SubsystemBase {
 
     public Command setPresetRockBackwards(SuperstructurePreset preset) {
         DoubleSupplier beltSupplier = () -> {
-            if (getCoralSensorIntake().getAsBoolean()) return 0.1;
+            if (getCoralSensorIntake().getAsBoolean()) return 0.2;
             return 0;
         };
 

@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import com.ctre.phoenix6.Utils;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
@@ -85,6 +87,10 @@ public class AutoPlace extends SequentialCommandGroup {
             this.scrub = scrub;
         }
 
+        public Pose2d getPose() {
+            return side == Side.LEFT ? hexSide.leftPlace : hexSide.rightPlace;
+        }
+
         public String toString() {
             return "Hex: " + hexSide.name + ", Side: " + side.name + ", L: " + l.description + ", Scrub: " + scrub.description;
         }
@@ -128,6 +134,7 @@ public class AutoPlace extends SequentialCommandGroup {
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast, boolean backwards) {
         PathPlannerPath path;
         String pathName = "";
+        EventTrigger raiseTrigger = new EventTrigger("Align");
         // Name format is [side number][L/R] (e.g. 4R)
         pathName += node.hexSide.name;
         pathName += node.side.name;
@@ -177,7 +184,16 @@ public class AutoPlace extends SequentialCommandGroup {
                         () -> node.l != SuperstructurePreset.MANUAL_OVERRIDE
                     ),
                     // If going to L4 then use L4 intermediate
-                    superstructure.setPresetWithAutoCenter(SuperstructurePreset.L4_INTERMEDIATE),
+                    // new SequentialCommandGroup(
+                        superstructure.setPresetWithAutoCenter(SuperstructurePreset.L4_INTERMEDIATE),
+                            // .until(raiseTrigger::getAsBoolean),
+                        // new PrintCommand("Raise!"),
+                        // new ConditionalCommand(
+                            // superstructure.setPreset(node.l),
+                            // superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
+                            // () -> !backwards
+                        // )
+                    // ),
                     () -> node.l != SuperstructurePreset.L4
                 )
             )

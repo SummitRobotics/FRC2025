@@ -52,7 +52,7 @@ public class Constants {
             kG = 0.68,
             kV = 0.10,
             kA = 0,
-            MAX_ROTATIONS = 15.7,
+            MAX_ROTATIONS = 15.8,
             ROTATION_TOLERANCE = 1;
     }
 

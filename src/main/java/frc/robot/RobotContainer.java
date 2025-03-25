@@ -114,7 +114,9 @@ public class RobotContainer {
     private final SendableChooser<Side> leftRightChooser;
     private final SendableChooser<Boolean> scrubChooser;
     private final SendableChooser<Boolean> reefChoiceAssist;
+    // private final SendableChooser<Boolean> backwardsChooser;
     private HexSide lastReef;
+    private boolean lastBackwards;
     private Runnable rebindAutoPlace;
 
     // Auto
@@ -156,6 +158,7 @@ public class RobotContainer {
         leftRightChooser = new SendableChooser<Side>();
         scrubChooser = new SendableChooser<Boolean>();
         reefChoiceAssist = new SendableChooser<Boolean>();
+        // backwardsChooser = new SendableChooser<Boolean>();
         lChooser.addOption("L4", SuperstructurePreset.L4);
         lChooser.addOption("L3", SuperstructurePreset.L3);
         lChooser.addOption("L2", SuperstructurePreset.L2);
@@ -174,7 +177,10 @@ public class RobotContainer {
         // Rebind upon scoring position selection change
         reefChoiceAssist.setDefaultOption("No", false);
         reefChoiceAssist.addOption("Yes", true);
+        // backwardsChooser.setDefaultOption("No", false);
+        // backwardsChooser.addOption("Yes", true);
         lastReef = hexSideChooser.getSelected();
+        lastBackwards = false;
         rebindAutoPlace = () -> {
             driverController.leftBumper().whileTrue(new AutoPlace(
                 drivetrain,
@@ -241,9 +247,9 @@ public class RobotContainer {
                 new SequentialCommandGroup(
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftStart", false, true, false),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftA"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftB", true, true, false),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftB", true, true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftC"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.STOW_UPPER), "ThreePieceLeftD", true, true, false)
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.STOW_UPPER), "ThreePieceLeftD", true, true, true)
                     // new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE")
                 )
             );
@@ -256,9 +262,9 @@ public class RobotContainer {
                 new SequentialCommandGroup(
                     new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.THREE, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightStart", false, true, false),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightA"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightB", true, true, false),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceRightB", true, true, true),
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightC"),
-                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.LEFT, SuperstructurePreset.STOW_UPPER), "ThreePieceRightD", true, true, false)
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.TWO, Side.LEFT, SuperstructurePreset.STOW_UPPER), "ThreePieceRightD", true, true, true)
                     // new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.RIGHT, "ThreePieceRightE")
                 )
             );
@@ -491,9 +497,10 @@ public class RobotContainer {
         buttonBox.sendMessage();
 
         // Rebinds for reef assist
-        if (lastReef != getHex()) {
+        if (lastReef != getHex() || lastBackwards != getBackwards()) {
             rebindAutoPlace.run();
             lastReef = getHex();
+            lastBackwards = getBackwards();
         }
 
         // Update Field2d object
@@ -679,8 +686,6 @@ public class RobotContainer {
     }
 
     private boolean getBackwards() {
-        // TODO - fix auto-selecting for backwards placement and add a SendableChooser
-        // return drivetrain.getState().Pose.getRotation().minus(getHex().leftPlace.getRotation()).getDegrees() > 90;
-        return true;
+        return /*backwardsChooser.getSelected() &&*/ Math.abs(drivetrain.getState().Pose.getRotation().minus(getHex().leftPlace.getRotation()).getDegrees()) > 90;
     }
 }
