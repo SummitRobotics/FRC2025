@@ -15,6 +15,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -46,7 +47,12 @@ import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.Functions;
+import frc.robot.utilities.PathProvider;
 import frc.robot.utilities.lists.Constants;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.PriorityQueue;
 
@@ -136,7 +142,27 @@ public class RobotContainer {
     // Field2d object for simulation
     private final Field2d field = new Field2d();
 
+    private String[] GetPathNames() {
+        try {
+            // Get the deploy/pathplanner/paths directory
+            Path pathPlannerDir = Filesystem.getDeployDirectory().toPath().resolve("pathplanner/paths");
+
+            // List all files in the directory and collect their basenames
+            return Files.list(pathPlannerDir)
+                    .filter(Files::isRegularFile) // Only include regular files
+                    .map(path -> path.getFileName().toString().replaceFirst("\\.path$", "")) // Remove ".path" extension
+                    .toArray(String[]::new); // Convert to String array
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load path names from deploy/pathplanner/paths");
+            return new String[0]; // Return an empty array if an error occurs
+        }
+    }
+
     public RobotContainer() {
+        // Preload our paths
+        PathProvider.initialize(this.GetPathNames());
+
         // Check if PS5 controllers should be used
         boolean usePS5Controllers = Boolean.parseBoolean(System.getenv("USE_PS5_CONTROLLERS"));
 
