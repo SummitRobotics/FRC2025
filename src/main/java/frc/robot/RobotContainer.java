@@ -12,7 +12,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -96,15 +95,15 @@ public class RobotContainer {
         new JoystickResponseCurve(JoystickResponseCurve.CurveType.LINEAR, rotationDeadband);
 
     // Subsystems
-    @Logged(name = "Drivetrain")
+    // @Logged(name = "Drivetrain")
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    @Logged(name = "Superstructure")
+    // @Logged(name = "Superstructure")
     public final Superstructure superstructure = new Superstructure(buttonBox);
-    @Logged(name = "Scrubber")
+    // @Logged(name = "Scrubber")
     public final Scrubber scrubber = new Scrubber(superstructure::pivotRotations);
     public final LEDSubsystem ledSubsystem = new LEDSubsystem(Constants.LED.PWM_PORT, Constants.LED.LED_COUNT);
-    @Logged(name = "Climb")
+    // @Logged(name = "Climb")
     public final Climb climb = new Climb();
 
     // Auto-align chooser

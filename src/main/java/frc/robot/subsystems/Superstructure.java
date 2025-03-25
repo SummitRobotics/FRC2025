@@ -14,10 +14,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -79,27 +76,27 @@ public class Superstructure extends SubsystemBase {
     private SuperstructurePreset state = SuperstructurePreset.STOW_LOWER;
 
     // Elevator
-    @Logged(name = "ElevatorA")
+    // @Logged(name = "ElevatorA")
     private final TalonFX
         elevatorA = new TalonFX(Constants.Elevator.ELEVATOR_ID_A);
     // @Logged(name = "ElevatorB")
     private final TalonFX
         elevatorB = new TalonFX(Constants.Elevator.ELEVATOR_ID_B);
-    StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
+    // StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
     private final MotionMagicVoltage mmVoltageReq = new MotionMagicVoltage(0).withSlot(0);
     private final Follower followReq = new Follower(Constants.Elevator.ELEVATOR_ID_A, false);
     // Manipulator
     private final TalonFX
         beltLeft = new TalonFX(Constants.Manipulator.BELT_LEFT_ID),
         beltRight = new TalonFX(Constants.Manipulator.BELT_RIGHT_ID);
-    @Logged(name = "Pivot")
+    // @Logged(name = "Pivot")
     private final TalonFX pivot = new TalonFX(Constants.Manipulator.PIVOT_ID);
     private final MotionMagicVoltage pivotReq = new MotionMagicVoltage(0).withSlot(0);
     private final CANcoder pivotCancoder = new CANcoder(Constants.Manipulator.CANCODER_ID);
     private boolean pivotSafe = false;
     private boolean elevatorSafe = false;
     // Sensor
-    @Logged(name = "ManipulatorSensors")
+    // @Logged(name = "ManipulatorSensors")
     private CandiCoralSensor coralSensor = new CandiCoralSensor();
     private SerialTOFSensor tofSensor = new SerialTOFSensor(230400);
 
@@ -210,7 +207,7 @@ public class Superstructure extends SubsystemBase {
         tofSensor.tick();
     }
 
-    @Logged(name = "Command")
+    // @Logged(name = "Command")
     public String getCurrentCommandName() {
         return (getCurrentCommand() != null) ? getCurrentCommand().getName() : "";
     }
@@ -322,7 +319,7 @@ public class Superstructure extends SubsystemBase {
                 Volts.of(2), // Reduce dynamic step voltage to 4 to prevent brownout
         null,        // Use default timeout (10 s)
                 // Log state with Phoenix SignalLogger class
-                state -> { testState.append(state.toString()); }
+                state -> { /*testState.append(state.toString());*/ }
             ),
             new SysIdRoutine.Mechanism(
                 (volts) -> {

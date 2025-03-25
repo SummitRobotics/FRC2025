@@ -2,7 +2,6 @@ package frc.robot.devices;
 
 import com.ctre.phoenix6.configs.CANdiConfiguration;
 import com.ctre.phoenix6.hardware.CANdi;
-import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utilities.lists.Constants;
 
@@ -22,12 +21,12 @@ public class CandiCoralSensor {
         return new Trigger(() -> candi.getS2State().getValueAsDouble() == 2.0);
     }
 
-    @Logged(name = "IntakeSensor")
+    // @Logged(name = "IntakeSensor")
     public boolean detectedIntakeSideBool() {
         return candi.getS1State().getValueAsDouble() == 2.0;
     }
 
-    @Logged(name = "PlacementSensor")
+    // @Logged(name = "PlacementSensor")
     public boolean detectedPlacementSideBool() {
         return candi.getS2State().getValueAsDouble() == 2.0;
     }

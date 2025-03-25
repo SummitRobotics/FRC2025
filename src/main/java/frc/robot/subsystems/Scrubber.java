@@ -6,7 +6,6 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -18,7 +17,7 @@ import frc.robot.utilities.lists.Constants;
 
 public class Scrubber extends SubsystemBase {
 
-    @Logged(name = "ScrubMotor")
+    // @Logged(name = "ScrubMotor")
     private final TalonFX scrubber = new TalonFX(Constants.Scrubber.SCRUBBER_ID);
     private final PositionVoltage scrubberReq = new PositionVoltage(0).withSlot(0);
     private DoubleSupplier manipulatorPivot;

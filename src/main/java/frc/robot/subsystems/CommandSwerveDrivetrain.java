@@ -18,10 +18,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -75,7 +73,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     TalonFX turn3 = getModule(3).getSteerMotor();
     // @Logged(name = "TestState")
     // String testState = "";
-    StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
+    // StringLogEntry testState = new StringLogEntry(DataLogManager.getLog(), "testState");
 
     // Limelights
     private final String[] limelightNames = {"limelight-tags", "limelight-rear"};
@@ -87,7 +85,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
             null,        // Use default timeout (10 s)
             // Log state with SignalLogger class
-            state -> { testState.append(state.toString()); }
+            state -> { /*testState.append(state.toString());*/ }
         ),
         new SysIdRoutine.Mechanism(
             output -> setControl(m_translationCharacterization.withVolts(output)),
@@ -103,7 +101,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Volts.of(7), // Use dynamic voltage of 7 V
             null,        // Use default timeout (10 s)
             // Log state with SignalLogger class
-            state -> { testState.append(state.toString()); }
+            state -> { /*testState.append(state.toString());*/ }
         ),
         new SysIdRoutine.Mechanism(
             volts -> setControl(m_steerCharacterization.withVolts(volts)),
@@ -125,7 +123,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Volts.of(Math.PI),
             null, // Use default timeout (10 s)
             // Log state with SignalLogger class
-            state -> { testState.append(state.toString()); }
+            state -> { /*testState.append(state.toString());*/ }
         ),
         new SysIdRoutine.Mechanism(
             output -> {
