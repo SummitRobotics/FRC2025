@@ -125,7 +125,7 @@ public class AutoPlace extends SequentialCommandGroup {
         360, 360
     );
 
-    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast) {
+    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast, boolean backwards) {
         PathPlannerPath path;
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
@@ -133,6 +133,7 @@ public class AutoPlace extends SequentialCommandGroup {
         pathName += node.side.name;
         // If the node is L1, append 1 to the path name
         if (node.l == SuperstructurePreset.L1) pathName += "1";
+        if (backwards && node.l == SuperstructurePreset.L4) pathName += "B";
         try {
             path = PathPlannerPath.fromPathFile(suppliedPathName.isEmpty() ? pathName : suppliedPathName);
         } catch (Exception e) {
@@ -185,9 +186,12 @@ public class AutoPlace extends SequentialCommandGroup {
         // Command to move superstructure to the desired position and shoot the coral
         SequentialCommandGroup place = new SequentialCommandGroup(
             // Move superstructure until at desired position, with a timeout
-            superstructure.setPreset(node.l)
-                .until(superstructure::atSetpoint)
-                .withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
+            // If going backwards rock the coral backwards too for the extra travel distance and speed
+            new ConditionalCommand(
+                superstructure.setPreset(node.l),
+                superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
+                () -> !backwards
+            ).until(superstructure::atSetpoint).withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
             // Wait some time if going to L4 (to allow the wrist to achieve pose)
             new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.4 : 0),
             // Shoot out the coral
@@ -202,7 +206,11 @@ public class AutoPlace extends SequentialCommandGroup {
                         // Commands.none(),
                         // () -> node.l == SuperstructurePreset.L1
                     // ).withTimeout(0.2),
-                superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l))
+                new ConditionalCommand(
+                    superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l)),
+                    superstructure.setPreset(SuperstructurePreset.getCorrespondingBackwardsGo(node.l)),
+                    () -> !backwards
+                )
                 // )
             )
         );

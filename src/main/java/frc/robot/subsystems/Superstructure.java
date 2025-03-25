@@ -32,19 +32,23 @@ import frc.robot.utilities.lists.Constants;
 public class Superstructure extends SubsystemBase {
 
     // State machine with encoder presets
+    // Those with "go" in the name are the spitting states
+    // Those with "B" in the name are the backwards placement states
     public static enum SuperstructurePreset {
         STOW_LOWER(0.1, Constants.Manipulator.MIN_ROTATIONS, 0, 0, "Stow Lower", Button.STOW_LOWER_PRESET),
-        STOW_UPPER(0.1, Constants.Manipulator.MAX_ROTATIONS * 0.8, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
+        STOW_UPPER(0.1, 0.24, 0, 0, "Stow Upper", Button.STOW_UPPER_PRESET),
         RECEIVE(3.4298038440, -0.165, 0, 0, "Receive", Button.RECEIVE_PRESET),
         L1(0.1, Constants.Manipulator.MIN_ROTATIONS + 0.025, 0, 0, "1", Button.L1_PRESET),
         L2(0.1, 0.101562, 0, 0, "2", Button.L2_PRESET),
         L3(4.193848, 0.137075, 0, 0, "3", Button.L3_PRESET),
         L3_SCRUB(5.3, STOW_UPPER.pivotRotations, 0, 0, "L3 Scrub", null),
         L4(14.85209, 0.08333, 0, 0, "4", Button.L4_PRESET),
+        L4B(15.5, 0.325, 0, 0, "4B", Button.L4_BACKWARDS),
         L1_GO(L1.elevatorRotations, L1.pivotRotations, -1, -1, "1", null),
         L2_GO(L2.elevatorRotations, L2.pivotRotations, 0.85, 0.85, "2", null),
         L3_GO(L3.elevatorRotations, L3.pivotRotations, 0.85, 0.85, "3", null),
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
+        L4B_GO(L4B.elevatorRotations, L4B.pivotRotations, -1, -1, "4B", null),
         L4_INTERMEDIATE(L3.elevatorRotations + 2, STOW_UPPER.pivotRotations, 0, 0, "Intermediate", null),
         MANUAL_OVERRIDE(0.3, 0, 0, 0, "None", null); // being manually overridden to something
         public double elevatorRotations;
@@ -68,8 +72,20 @@ public class Superstructure extends SubsystemBase {
                 case L2: return L2_GO;
                 case L3: return L3_GO;
                 case L4: return L4_GO;
+                case L4B: return L4B_GO;
                 default: return preset;
             }
+        }
+
+        public static SuperstructurePreset getCorrespondingBackwardsState(SuperstructurePreset preset) {
+            switch (preset) {
+                case L4: return L4B;
+                default: return preset;
+            }
+        }
+
+        public static SuperstructurePreset getCorrespondingBackwardsGo(SuperstructurePreset preset) {
+            return getCorrespondingGoState(getCorrespondingBackwardsState(preset));
         }
     }
 
@@ -288,6 +304,15 @@ public class Superstructure extends SubsystemBase {
                 }
             }
         };
+        return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);
+    }
+
+    public Command setPresetRockBackwards(SuperstructurePreset preset) {
+        DoubleSupplier beltSupplier = () -> {
+            if (getCoralSensorIntake().getAsBoolean()) return 0.1;
+            return 0;
+        };
+
         return setPresetWithBeltOverride(preset, beltSupplier, beltSupplier);
     }
 

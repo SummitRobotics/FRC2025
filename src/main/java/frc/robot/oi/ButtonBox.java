@@ -15,6 +15,7 @@ public class ButtonBox extends GenericHID {
         L2_PRESET(5, "L2"),
         L3_PRESET(7, "L3"),
         L4_PRESET(8, "L4"),
+        L4_BACKWARDS(9, "L4B"),
         MO_PRESET(10, "MO"), // Missile switch 1
         GO_PRESET(6, "Go");
         public int index;
