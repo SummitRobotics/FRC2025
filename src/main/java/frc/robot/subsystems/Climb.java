@@ -72,7 +72,7 @@ public class Climb extends SubsystemBase {
     }
 
     public Command extend() {
-        return setWithMotionProfile(() -> Constants.Climb.MAX_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT, () -> 0.15);
+        return setWithMotionProfile(() -> Constants.Climb.MAX_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT, () -> 0.2);
     }
 
     public Command lift() {

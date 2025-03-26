@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -13,6 +14,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -190,10 +193,10 @@ public class AutoPlace extends SequentialCommandGroup {
                     ),
                     // If going to L4 then use L4 intermediate
                     superstructure.setManual(
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.45, 15)
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15)
                             ? SuperstructurePreset.L4.elevatorRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.elevatorRotations,
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.45, 15) 
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15) 
                             ? SuperstructurePreset.L4.pivotRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.pivotRotations,
                         () -> 0,
@@ -238,14 +241,33 @@ public class AutoPlace extends SequentialCommandGroup {
 
         // Command to run the algea scrubber (t-rex goes rawr), this is run after placing the coral
         SequentialCommandGroup scrub = new SequentialCommandGroup(
-            // Move the superstructure to the desired scrub position, wait until at setpoint or timeout
-            superstructure.setPreset(node.scrub)
-                .until(superstructure::atSetpoint)
-                .withDeadline(new WaitCommand(0.5)),
-            // Wait some time if going to L4 (to allow the superstructure to settle?)
-            new WaitCommand(node.l == SuperstructurePreset.L4 ? 0.5 : 0),
-            // Drive the scrubber arms up until timeout
-            scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS).withDeadline(new WaitCommand(0.5))
+            // TODO - make this work if we aren't in L4 position beforehand
+            // new ConditionalCommand(
+                // superstructure.setPreset(SuperstructurePreset.L4).withTimeout(1.5),
+                // Commands.none(),
+                // () -> node.l == SuperstructurePreset.MANUAL_OVERRIDE
+            // ),
+            new ParallelCommandGroup(
+                // Move the superstructure to the desired scrub position, wait until at setpoint or timeout
+                new SequentialCommandGroup(
+                    scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS / 2).withTimeout(1),
+                    scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations)
+                ),
+                new SequentialCommandGroup(
+                    superstructure.setPreset(node.scrub).withTimeout(1),
+                    superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
+                ),
+                new ConditionalCommand(
+                    new SequentialCommandGroup(
+                        new WaitCommand(1),
+                        new InstantCommand(() -> {
+                            drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-0.5));
+                        }).repeatedly().withTimeout(0.5)
+                    ),
+                    Commands.none(),
+                    () -> suppliedPathName.isEmpty()
+                )
+            )
         );
 
         if (!Utils.isSimulation()) {
