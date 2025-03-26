@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -191,10 +190,10 @@ public class AutoPlace extends SequentialCommandGroup {
                     ),
                     // If going to L4 then use L4 intermediate
                     superstructure.setManual(
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15)
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.45, 15)
                             ? SuperstructurePreset.L4.elevatorRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.elevatorRotations,
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15) 
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.45, 15) 
                             ? SuperstructurePreset.L4.pivotRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.pivotRotations,
                         () -> 0,
@@ -202,10 +201,7 @@ public class AutoPlace extends SequentialCommandGroup {
                     ),
                     () -> node.l != SuperstructurePreset.L4
                 )
-            ),
-            new InstantCommand(() -> {
-                System.out.println("Distance: " + Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.5, 15));
-            }).repeatedly()
+            )
         );
 
         // Command to move superstructure to the desired position and shoot the coral

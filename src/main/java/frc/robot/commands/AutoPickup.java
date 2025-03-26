@@ -9,10 +9,12 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
@@ -50,10 +52,10 @@ public class AutoPickup extends SequentialCommandGroup {
     }
 
     public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side) {
-        this(drivetrain, superstructure, scrubber, side, "");
+        this(drivetrain, superstructure, scrubber, side, "", SuperstructurePreset.MANUAL_OVERRIDE);
     }
 
-    public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side, String suppliedPathName) {
+    public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side, String suppliedPathName, SuperstructurePreset scrub) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
                 3.0, 4.0,
@@ -91,16 +93,33 @@ public class AutoPickup extends SequentialCommandGroup {
                 new ConditionalCommand(
                     // Perform the auto pickup sequence until the coral sensor is triggered
                     new ParallelCommandGroup(
-                        // Stow the scrubber
-                        scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
+                        // Stow the scrubber, or scrub up and down if given the option
+                        new ConditionalCommand(
+                            scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
+                            new SequentialCommandGroup(
+                                scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS / 4).withTimeout(1),
+                                scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations)
+                            ),
+                            () -> scrub == SuperstructurePreset.MANUAL_OVERRIDE
+                        ),
                         // Move the superstructure to the stow position for some time, then to receive position; all while driving the coral intake
                         new SequentialCommandGroup(
-                            superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withTimeout(0/*1.25*/),
+                            // superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withTimeout(0/*1.25*/),
+                            new ConditionalCommand(
+                                Commands.none(),
+                                superstructure.setPreset(scrub).withTimeout(1),
+                                () -> scrub == SuperstructurePreset.MANUAL_OVERRIDE
+                            ),
                             superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
                         ),
                         // Drive to the station until the coral sensor is triggered
                         // Follow the suppplied path if given, otherwise pathfind and then follow the left or right path
                         new SequentialCommandGroup(
+                            new ConditionalCommand(
+                                Commands.none(),
+                                new WaitCommand(1),
+                                () -> scrub == SuperstructurePreset.MANUAL_OVERRIDE
+                            ),
                             new ConditionalCommand(
                                 new ConditionalCommand(
                                     AutoBuilder.pathfindThenFollowPath(leftPath, constraints),
