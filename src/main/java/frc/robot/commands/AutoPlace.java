@@ -216,7 +216,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 superstructure.setPreset(node.l),
                 superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
                 () -> !backwards
-            ).until(superstructure::atSetpoint).withTimeout(node.l == SuperstructurePreset.L4 ? 0.5 : 0.5),
+            )/*.until(superstructure::atSetpoint)*/.withTimeout(node.l == SuperstructurePreset.L4 ? 0.3 : 0.5),
             // Wait some time if going to L4 (to allow the wrist to achieve pose)
             new WaitCommand((node.l == SuperstructurePreset.L4) ? 0 : 0),
             // Shoot out the coral
