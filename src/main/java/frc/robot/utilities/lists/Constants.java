@@ -52,7 +52,7 @@ public class Constants {
             kG = 0.68,
             kV = 0.10,
             kA = 0,
-            MAX_ROTATIONS = 15.5,
+            MAX_ROTATIONS = 15.8,
             ROTATION_TOLERANCE = 1;
     }
 
@@ -64,7 +64,7 @@ public class Constants {
             CORAL_SENSOR_ID = 50,
             CANCODER_ID = 5;
         public static final double
-            MAX_ROTATIONS = 0.3,
+            MAX_ROTATIONS = 0.4,
             MIN_ROTATIONS = -0.246,
             CLEAR_OF_ELEVATOR_ROTATIONS = -0.145264,
             PIVOT_RATIO = 54,

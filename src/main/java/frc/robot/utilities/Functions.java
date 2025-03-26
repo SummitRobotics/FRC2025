@@ -225,4 +225,9 @@ public class Functions {
         Pose2d pose = mirrorPoseToRed(new Pose2d(translation.getX(), translation.getY(), Rotation2d.fromDegrees(0)));
         return new Translation2d(pose.getX(), pose.getY());
     }
+
+    // TODO - finish
+    // public static boolean poseInTolerance(Pose2d poseA, Pose2d poseB, double radius, double angleTolerance) {
+        // Pose2d relativePose = poseA.relativeTo(poseB);
+    // }
 }

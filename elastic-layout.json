@@ -1,6 +1,6 @@
 {
   "version": 1.0,
-  "grid_size": 32,
+  "grid_size": 128,
   "tabs": [
     {
       "name": "Teleoperated",
@@ -16,10 +16,7 @@
             "type": "Split Button Chooser",
             "properties": {
               "topic": "/SmartDashboard/L Chooser",
-              "period": 0.06,
-              "button_direction_horizontal": true,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
+              "period": 0.06
             }
           },
           {
@@ -31,10 +28,7 @@
             "type": "Split Button Chooser",
             "properties": {
               "topic": "/SmartDashboard/Hex Side Chooser",
-              "period": 0.06,
-              "button_direction_horizontal": true,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
+              "period": 0.06
             }
           },
           {
@@ -46,18 +40,15 @@
             "type": "Split Button Chooser",
             "properties": {
               "topic": "/SmartDashboard/Left-Right Chooser",
-              "period": 0.06,
-              "button_direction_horizontal": true,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
+              "period": 0.06
             }
           },
           {
             "title": "Field",
             "x": 0.0,
             "y": 0.0,
-            "width": 576.0,
-            "height": 288.0,
+            "width": 1024.0,
+            "height": 512.0,
             "type": "Field",
             "properties": {
               "topic": "/SmartDashboard/Field",
@@ -81,111 +72,32 @@
             "type": "Split Button Chooser",
             "properties": {
               "topic": "/SmartDashboard/Scrub Chooser",
-              "period": 0.06,
-              "button_direction_horizontal": true,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
+              "period": 0.06
             }
           },
           {
             "title": "Reef Choice Assist",
-            "x": 576.0,
-            "y": 0.0,
+            "x": 1024.0,
+            "y": 512.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Split Button Chooser",
             "properties": {
               "topic": "/SmartDashboard/Reef Choice Assist",
-              "period": 0.06,
-              "button_direction_horizontal": true,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
+              "period": 0.06
             }
           },
           {
-            "title": "Hex Side Chooser",
-            "x": 608.0,
-            "y": 128.0,
-            "width": 128.0,
-            "height": 384.0,
-            "type": "Split Button Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/Hex Side Chooser",
-              "period": 0.12,
-              "button_direction_horizontal": false,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
-            }
-          },
-          {
-            "title": "L Chooser",
-            "x": 864.0,
-            "y": 128.0,
-            "width": 128.0,
-            "height": 320.0,
-            "type": "Split Button Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/L Chooser",
-              "period": 0.12,
-              "button_direction_horizontal": false,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
-            }
-          },
-          {
-            "title": "Left-Right Chooser",
-            "x": 736.0,
-            "y": 128.0,
-            "width": 128.0,
-            "height": 320.0,
-            "type": "Split Button Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/Left-Right Chooser",
-              "period": 0.12,
-              "button_direction_horizontal": false,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
-            }
-          },
-          {
-            "title": "Scrub Chooser",
-            "x": 992.0,
-            "y": 128.0,
-            "width": 128.0,
-            "height": 192.0,
-            "type": "Split Button Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/Scrub Chooser",
-              "period": 0.12,
-              "button_direction_horizontal": false,
-              "button_text_size": 20.0,
-              "button_padding": 2.0
-            }
-          },
-          {
-            "title": "Scrub Chooser",
-            "x": 128.0,
-            "y": 320.0,
-            "width": 128.0,
+            "title": "Auto Chooser",
+            "x": 256.0,
+            "y": 512.0,
+            "width": 384.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
             "properties": {
-              "topic": "/SmartDashboard/Scrub Chooser",
-              "period": 0.12,
+              "topic": "/SmartDashboard/Auto Chooser",
+              "period": 0.06,
               "sort_options": false
-            }
-          },
-          {
-            "title": "Scrub",
-            "x": 352.0,
-            "y": 320.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/Scrub",
-              "period": 0.12,
-              "show_type": true
             }
           }
         ]
