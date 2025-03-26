@@ -2,7 +2,6 @@ package frc.robot.commands;
 
 import com.ctre.phoenix6.Utils;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -15,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
@@ -134,13 +132,13 @@ public class AutoPlace extends SequentialCommandGroup {
     public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast, boolean backwards) {
         PathPlannerPath path;
         String pathName = "";
-        EventTrigger raiseTrigger = new EventTrigger("Align");
         // Name format is [side number][L/R] (e.g. 4R)
         pathName += node.hexSide.name;
         pathName += node.side.name;
         // If the node is L1, append 1 to the path name
         if (node.l == SuperstructurePreset.L1) pathName += "1";
-        if (backwards && node.l == SuperstructurePreset.L4) pathName += "B";
+        // Backwards placement (supported for L4 and L3)
+        if (backwards && (node.l == SuperstructurePreset.L4 || node.l == SuperstructurePreset.L3)) pathName += "B";
         try {
             path = PathPlannerPath.fromPathFile(suppliedPathName.isEmpty() ? pathName : suppliedPathName);
         } catch (Exception e) {
@@ -173,7 +171,13 @@ public class AutoPlace extends SequentialCommandGroup {
                     // If going to L1, L2, or L3, set the superstructure to the desired position
                     new ConditionalCommand(
                         new ConditionalCommand(
-                            superstructure.setPresetWithAutoCenter(node.l),
+                            // L2 and L3
+                            new ConditionalCommand(
+                                superstructure.setPresetWithAutoCenter(node.l),
+                                superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
+                                () -> !backwards
+                            ),
+                            // L1
                             new SequentialCommandGroup(
                                 superstructure.setPresetWithBeltOverride(node.l, () -> 0.3, () -> 0.3).withTimeout(0),
                                 superstructure.setPreset(node.l)
@@ -186,8 +190,9 @@ public class AutoPlace extends SequentialCommandGroup {
                     // If going to L4 then use L4 intermediate
                     // new SequentialCommandGroup(
                         superstructure.setPresetWithAutoCenter(SuperstructurePreset.L4_INTERMEDIATE),
-                            // .until(raiseTrigger::getAsBoolean),
-                        // new PrintCommand("Raise!"),
+                            // .until(() ->
+                                // false
+                            // ),
                         // new ConditionalCommand(
                             // superstructure.setPreset(node.l),
                             // superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
