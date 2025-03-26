@@ -18,6 +18,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
+import frc.robot.utilities.PathProvider;
 import frc.robot.utilities.lists.Constants;
 
 public class AutoPickup extends SequentialCommandGroup {
@@ -61,8 +62,8 @@ public class AutoPickup extends SequentialCommandGroup {
         PathPlannerPath leftPath;
         PathPlannerPath rightPath;
         try {
-            leftPath = PathPlannerPath.fromPathFile(CoralStationSide.LEFT.pathName);
-            rightPath = PathPlannerPath.fromPathFile(CoralStationSide.RIGHT.pathName);
+            leftPath = PathProvider.fromPathFile(CoralStationSide.LEFT.pathName);
+            rightPath = PathProvider.fromPathFile(CoralStationSide.RIGHT.pathName);
         } catch (Exception e) {
             e.printStackTrace();
             throw (new RuntimeException("Loaded a path that does not exist."));
@@ -71,7 +72,7 @@ public class AutoPickup extends SequentialCommandGroup {
         PathPlannerPath suppliedPath;
         if (!suppliedPathName.isEmpty()) {
             try {
-                suppliedPath = PathPlannerPath.fromPathFile(suppliedPathName);
+                suppliedPath = PathProvider.fromPathFile(suppliedPathName);
             } catch (Exception e) {
                 throw new RuntimeException();
             }

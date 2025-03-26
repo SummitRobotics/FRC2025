@@ -22,6 +22,7 @@ import frc.robot.subsystems.Scrubber;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.Functions;
+import frc.robot.utilities.PathProvider;
 import frc.robot.utilities.lists.Constants;
 
 public class AutoPlace extends SequentialCommandGroup {
@@ -140,7 +141,7 @@ public class AutoPlace extends SequentialCommandGroup {
         // Backwards placement (supported for L4 and L3)
         if (backwards && (node.l == SuperstructurePreset.L4 || node.l == SuperstructurePreset.L3)) pathName += "B";
         try {
-            path = PathPlannerPath.fromPathFile(suppliedPathName.isEmpty() ? pathName : suppliedPathName);
+            path = PathProvider.fromPathFile(suppliedPathName.isEmpty() ? pathName : suppliedPathName);
         } catch (Exception e) {
             e.printStackTrace();
             throw (new RuntimeException("Loaded a path that does not exist."));
