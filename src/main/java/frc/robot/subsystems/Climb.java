@@ -19,10 +19,12 @@ import frc.robot.utilities.lists.Constants;
 public class Climb extends SubsystemBase {
     // @Logged(name = "ClimbMotor")
     private final TalonFX
-        climbMotor = new TalonFX(Constants.Climb.CLIMB_ID);
+        climbMotor = new TalonFX(Constants.Climb.CLIMB_ID),
+        acquisitionMotor = new TalonFX(Constants.Climb.ACQUISITION_ID);
     private final DigitalInput limitSwitch = new DigitalInput(Constants.Climb.SENSOR_ID);
     private final MotionMagicVoltage request = new MotionMagicVoltage(0).withSlot(0);
     public Climb() {
+        // Climb motor
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.Slot0
             .withKP(Constants.Climb.P)
@@ -43,35 +45,44 @@ public class Climb extends SubsystemBase {
         config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
         climbMotor.getConfigurator().apply(config);
         climbMotor.setPosition(0);
+
+        // Acquisition motor
+        TalonFXConfiguration acquireConfig = new TalonFXConfiguration();
+        acquireConfig.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+        acquireConfig.MotorOutput.withNeutralMode(NeutralModeValue.Coast);
+        acquisitionMotor.getConfigurator().apply(acquireConfig);
     }
 
-    public Command set(DoubleSupplier encoder) {
-        return this.run(() -> climbMotor.setControl(request.withPosition(encoder.getAsDouble())));
+    public Command set(DoubleSupplier encoder, DoubleSupplier acquireSpeed) {
+        return this.run(() -> {
+            climbMotor.setControl(request.withPosition(encoder.getAsDouble()));
+            acquisitionMotor.set(acquireSpeed.getAsDouble());
+        });
     }
 
-    public Command setWithMotionProfile(DoubleSupplier encoder, double maxVel, double maxAccel) {
+    public Command setWithMotionProfile(DoubleSupplier encoder, double maxVel, double maxAccel, DoubleSupplier acquireSpeed) {
         return new SequentialCommandGroup(
             new InstantCommand(() -> {
                 climbMotor.getConfigurator().apply(new MotionMagicConfigs()
                     .withMotionMagicCruiseVelocity(maxVel)
                     .withMotionMagicAcceleration(maxAccel));
             }),
-            set(encoder)
+            set(encoder, acquireSpeed)
         );
     }
 
     public Command extend() {
-        return setWithMotionProfile(() -> Constants.Climb.MAX_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT);
+        return setWithMotionProfile(() -> Constants.Climb.MAX_ROTATIONS, Constants.Climb.MAX_VELOCITY_OUT, Constants.Climb.MAX_ACCEL_OUT, () -> 0.15);
     }
 
     public Command lift() {
-        return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN)
+        return setWithMotionProfile(() -> Constants.Climb.BACK_ROTATIONS, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN, () -> 0)
             .until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }
 
     public Command retract() {
-        return setWithMotionProfile(() -> 0, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN)
+        return setWithMotionProfile(() -> 0, Constants.Climb.MAX_VELOCITY_IN, Constants.Climb.MAX_ACCEL_IN, () -> 0)
             .until(switchTriggered()::getAsBoolean)
             .finallyDo(() -> climbMotor.set(0));
     }

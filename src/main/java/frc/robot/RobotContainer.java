@@ -254,7 +254,7 @@ public class RobotContainer {
         SmartDashboard.putData("Field", field);
         // Climb
         SmartDashboard.putData("Extend", climb.extend());
-        SmartDashboard.putData("Lift", climb.lift());
+        SmartDashboard.putData("Lift", climb.lift().repeatedly().alongWith(superstructure.setPreset(SuperstructurePreset.CLIMB_STOW)));
         SmartDashboard.putData("Retract", climb.retract());
         // Instant scrub button
         SmartDashboard.putData("Scrub", new SequentialCommandGroup(

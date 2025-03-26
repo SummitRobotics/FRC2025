@@ -97,6 +97,7 @@ public class Constants {
     public static class Climb {
         public static final int
             CLIMB_ID = 17,
+            ACQUISITION_ID = 29,
             SENSOR_ID = 0;
         public static final double
             P = 20,
