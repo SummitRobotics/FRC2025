@@ -49,8 +49,8 @@ public class Superstructure extends SubsystemBase {
         L3B_GO(L3B.elevatorRotations, L3B.pivotRotations, -1, -1, "4B", null),
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
         L4B_GO(L4B.elevatorRotations, L4B.pivotRotations, -1, -1, "4B", null),
-        L4_INTERMEDIATE(L3.elevatorRotations + 2, STOW_UPPER.pivotRotations, 0, 0, "Intermediate", null),
-        CLIMB_STOW(0.1, 0.125, 0, 0, "Stow Climb", null),
+        L4_INTERMEDIATE(L3.elevatorRotations + 2, 0.178, 0, 0, "Intermediate", null),
+        CLIMB_STOW(0.1, 0.06125, 0, 0, "Stow Climb", null),
         MANUAL_OVERRIDE(0.3, 0, 0, 0, "None", null); // being manually overridden to something
         public double elevatorRotations;
         public double pivotRotations;
@@ -189,10 +189,10 @@ public class Superstructure extends SubsystemBase {
         this.buttonBox = buttonBox;
 
         // Questionable non-feedback re-homing solution (assume it's fallen to the bottom after 2 seconds of being commanded down)
-        new Trigger(() -> state.elevatorRotations < 0.2).debounce(2).onTrue(new InstantCommand(() -> {
-            elevatorA.setPosition(0);
-            elevatorB.setPosition(0);
-        }));
+        // new Trigger(() -> state.elevatorRotations < 0.2).debounce(2).onTrue(new InstantCommand(() -> {
+            // elevatorA.setPosition(0);
+            // elevatorB.setPosition(0);
+        // }));
     }
 
     public Trigger getCoralSensorIntake() {
@@ -252,13 +252,13 @@ public class Superstructure extends SubsystemBase {
 
             // Do not collide mechanisms
             pivotSafe =
-                pivotCancoder.getPosition().getValueAsDouble() > SuperstructurePreset.STOW_UPPER.pivotRotations - Constants.Manipulator.ROTATION_TOLERANCE;
+                pivotCancoder.getPosition().getValueAsDouble() > 0.17;
             elevatorSafe = 
                 Functions.withinTolerance(elevatorA.getPosition().getValueAsDouble(), elevatorRotations.getAsDouble(), Constants.Elevator.ROTATION_TOLERANCE * 1.5);
             // Freeze the elevator until pivot's safe
             setElevator(pivotSafe ? elevatorRotations.getAsDouble() : elevatorA.getPosition().getValueAsDouble());
             // Save the pivot until elevator's positioned
-            setPivot(elevatorSafe ? pivotRotations.getAsDouble() : SuperstructurePreset.STOW_UPPER.pivotRotations);
+            setPivot(elevatorSafe ? pivotRotations.getAsDouble() : 0.178);
             beltLeft.set(leftBelt.getAsDouble());
             beltRight.set(rightBelt.getAsDouble());
         });
@@ -329,7 +329,8 @@ public class Superstructure extends SubsystemBase {
 
     public boolean atSetpoint() {
         return pivotSafe && elevatorSafe && elevatorA.getClosedLoopError().getValueAsDouble() < Constants.Elevator.ROTATION_TOLERANCE
-            && pivot.getClosedLoopError().getValueAsDouble() < Constants.Manipulator.ROTATION_TOLERANCE;// && pivot.getVelocity().getValueAsDouble() < 0.005;
+            && Math.abs(pivot.getClosedLoopError().getValueAsDouble()) < Constants.Manipulator.ROTATION_TOLERANCE
+            && Math.abs(pivot.getVelocity().getValueAsDouble()) < 0.025;
     }
 
     public double pivotRotations() {

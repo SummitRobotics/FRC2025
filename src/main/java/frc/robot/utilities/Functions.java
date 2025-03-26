@@ -226,8 +226,9 @@ public class Functions {
         return new Translation2d(pose.getX(), pose.getY());
     }
 
-    // TODO - finish
-    // public static boolean poseInTolerance(Pose2d poseA, Pose2d poseB, double radius, double angleTolerance) {
+    public static boolean poseInTolerance(Pose2d poseA, Pose2d poseB, double radius, double angleTolerance) {
         // Pose2d relativePose = poseA.relativeTo(poseB);
-    // }
+        return Math.hypot(poseA.getX() - poseB.getX(), poseA.getY() - poseB.getY()) < radius
+            && Math.abs(poseA.getRotation().minus(poseB.getRotation()).getDegrees()) < angleTolerance;
+    }
 }

@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -189,20 +190,22 @@ public class AutoPlace extends SequentialCommandGroup {
                         () -> node.l != SuperstructurePreset.MANUAL_OVERRIDE
                     ),
                     // If going to L4 then use L4 intermediate
-                    // new SequentialCommandGroup(
-                        superstructure.setPresetWithAutoCenter(SuperstructurePreset.L4_INTERMEDIATE),
-                            // .until(() ->
-                                // false
-                            // ),
-                        // new ConditionalCommand(
-                            // superstructure.setPreset(node.l),
-                            // superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
-                            // () -> !backwards
-                        // )
-                    // ),
+                    superstructure.setManual(
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15)
+                            ? SuperstructurePreset.L4.elevatorRotations
+                            : SuperstructurePreset.L4_INTERMEDIATE.elevatorRotations,
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15) 
+                            ? SuperstructurePreset.L4.pivotRotations
+                            : SuperstructurePreset.L4_INTERMEDIATE.pivotRotations,
+                        () -> 0,
+                        () -> 0
+                    ),
                     () -> node.l != SuperstructurePreset.L4
                 )
-            )
+            ),
+            new InstantCommand(() -> {
+                System.out.println("Distance: " + Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.5, 15));
+            }).repeatedly()
         );
 
         // Command to move superstructure to the desired position and shoot the coral
@@ -213,9 +216,9 @@ public class AutoPlace extends SequentialCommandGroup {
                 superstructure.setPreset(node.l),
                 superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
                 () -> !backwards
-            ).until(superstructure::atSetpoint).withTimeout(node.l == SuperstructurePreset.L4 ? 0.75 : 0.5),
+            ).until(superstructure::atSetpoint).withTimeout(node.l == SuperstructurePreset.L4 ? 0.5 : 0.5),
             // Wait some time if going to L4 (to allow the wrist to achieve pose)
-            new WaitCommand((node.l == SuperstructurePreset.L4) ? 0.4 : 0),
+            new WaitCommand((node.l == SuperstructurePreset.L4) ? 0 : 0),
             // Shoot out the coral
             new ParallelDeadlineGroup(
                 // Run until the shoot sensors are cleared, or for a timeout if going to L1
