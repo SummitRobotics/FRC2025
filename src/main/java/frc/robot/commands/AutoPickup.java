@@ -52,10 +52,10 @@ public class AutoPickup extends SequentialCommandGroup {
     }
 
     public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side) {
-        this(drivetrain, superstructure, scrubber, side, "", SuperstructurePreset.MANUAL_OVERRIDE);
+        this(drivetrain, superstructure, scrubber, side, "", SuperstructurePreset.MANUAL_OVERRIDE, false);
     }
 
-    public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side, String suppliedPathName, SuperstructurePreset scrub) {
+    public AutoPickup(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Supplier<CoralStationSide> side, String suppliedPathName, SuperstructurePreset scrub, boolean l3Safe) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
                 3.0, 4.0,
@@ -106,7 +106,12 @@ public class AutoPickup extends SequentialCommandGroup {
                         new SequentialCommandGroup(
                             // superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER).withTimeout(0/*1.25*/),
                             new ConditionalCommand(
-                                Commands.none(),
+                                // L3 safety
+                                new ConditionalCommand(
+                                    superstructure.setPreset(SuperstructurePreset.L3).withTimeout(1),
+                                    Commands.none(),
+                                    () -> l3Safe
+                                ),
                                 superstructure.setPreset(scrub).withTimeout(1),
                                 () -> scrub == SuperstructurePreset.MANUAL_OVERRIDE
                             ),
