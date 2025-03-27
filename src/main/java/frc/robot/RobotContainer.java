@@ -321,6 +321,9 @@ public class RobotContainer {
         SmartDashboard.putBoolean("Auto Selected", isAutoSelected);
     }
 
+    // Track whether the robot has left the RECEIVE state
+    private boolean hasLeftReceiveState = true;
+
     /**
      * Configure cycle timer triggers for tracking cycle times during a match
      */
@@ -353,24 +356,34 @@ public class RobotContainer {
             .and(superstructure.getCoralSensorIntake())
             .and(superstructure.getCoralSensorPlace())
             .onTrue(new InstantCommand(() -> {
-                // For subsequent cycles (not the first pre-loaded piece)
-                if (!timerRunning) {
-                    // First cycle or new cycle after scoring
-                    cycleTimer.reset();
-                    cycleTimer.start();
-                    timerRunning = true;
-                } else {
-                    // Complete a cycle
-                    lastCycleTime = cycleTimer.get();
-                    cycleCount++;
+                // Only trigger if we've left and re-entered the RECEIVE state.
+                if (hasLeftReceiveState) {
+                    hasLeftReceiveState = false;
 
-                    // Update statistics
-                    totalCycleTime += lastCycleTime;
-                    averageCycleTime = totalCycleTime / cycleCount;
-                    addToMedianCalculation(lastCycleTime);
+                    if (!timerRunning) {
+                        // First cycle or new cycle after scoring
+                        cycleTimer.reset();
+                        cycleTimer.start();
+                        timerRunning = true;
+                    } else {
+                        // Complete a cycle
+                        lastCycleTime = cycleTimer.get();
+                        cycleCount++;
 
-                    cycleTimer.reset(); // Reset for next cycle
+                        // Update statistics
+                        totalCycleTime += lastCycleTime;
+                        averageCycleTime = totalCycleTime / cycleCount;
+                        addToMedianCalculation(lastCycleTime);
+
+                        cycleTimer.reset(); // Reset for next cycle
+                    }
                 }
+            }));
+
+        // Reset the flag when leaving the RECEIVE state
+        new Trigger(() -> superstructure.getState() != SuperstructurePreset.RECEIVE)
+            .onTrue(new InstantCommand(() -> {
+                hasLeftReceiveState = true;
             }));
     }
 
