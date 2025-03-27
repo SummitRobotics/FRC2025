@@ -133,7 +133,7 @@ public class AutoPlace extends SequentialCommandGroup {
         360, 360
     );
 
-    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast, boolean backwards) {
+    public AutoPlace(CommandSwerveDrivetrain drivetrain, Superstructure superstructure, Scrubber scrubber, Node node, String suppliedPathName, boolean manipulatorSafe, boolean fast, boolean backwards, boolean backUp) {
         PathPlannerPath path;
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
@@ -268,7 +268,7 @@ public class AutoPlace extends SequentialCommandGroup {
                         }).repeatedly().withTimeout(0.5)
                     ),
                     Commands.none(),
-                    () -> suppliedPathName.isEmpty()
+                    () -> suppliedPathName.isEmpty() || backUp
                 )
             )
         );
