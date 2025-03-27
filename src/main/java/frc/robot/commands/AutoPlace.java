@@ -126,7 +126,7 @@ public class AutoPlace extends SequentialCommandGroup {
 
     // Create the constraints to use while pathfinding
     private PathConstraints constraintsSlow = new PathConstraints(
-            1, 1.5,
+            3, 3,
             Units.degreesToRadians(270), Units.degreesToRadians(360));
     private PathConstraints constraintsFast = new PathConstraints(
         4, 3.5,
@@ -215,7 +215,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 superstructure.setPreset(node.l),
                 superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
                 () -> !backwards
-            )/*.until(superstructure::atSetpoint)*/.withTimeout(node.l == SuperstructurePreset.L4 ? 0.3 : 0.5),
+            )/*.until(superstructure::atSetpoint)*/.withTimeout(node.l == SuperstructurePreset.L4 ? 0.3 : 0),
             // Wait some time if going to L4 (to allow the wrist to achieve pose)
             new WaitCommand((node.l == SuperstructurePreset.L4) ? 0 : 0),
             // Shoot out the coral
@@ -241,12 +241,15 @@ public class AutoPlace extends SequentialCommandGroup {
 
         // Command to run the algea scrubber (t-rex goes rawr), this is run after placing the coral
         SequentialCommandGroup scrub = new SequentialCommandGroup(
-            // TODO - make this work if we aren't in L4 position beforehand
-            // new ConditionalCommand(
-                // superstructure.setPreset(SuperstructurePreset.L4).withTimeout(1.5),
-                // Commands.none(),
-                // () -> node.l == SuperstructurePreset.MANUAL_OVERRIDE
-            // ),
+            new ConditionalCommand(
+                new ConditionalCommand(
+                    superstructure.setPreset(SuperstructurePreset.LOW_PRE_SCRUB).withTimeout(1),
+                    superstructure.setPreset(SuperstructurePreset.HIGH_PRE_SCRUB).withTimeout(1),
+                    () -> node.scrub == SuperstructurePreset.STOW_UPPER
+                ),
+                Commands.none(),
+                () -> node.l != SuperstructurePreset.L4
+            ),
             new ParallelCommandGroup(
                 // Move the superstructure to the desired scrub position, wait until at setpoint or timeout
                 new SequentialCommandGroup(

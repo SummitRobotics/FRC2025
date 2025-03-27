@@ -50,6 +50,8 @@ public class Superstructure extends SubsystemBase {
         L4_GO(L4.elevatorRotations, L4.pivotRotations, 1, 1, "4", null),
         L4B_GO(L4B.elevatorRotations, L4B.pivotRotations, -1, -1, "4B", null),
         L4_INTERMEDIATE(L3.elevatorRotations + 2, 0.178, 0, 0, "Intermediate", null),
+        HIGH_PRE_SCRUB(L4.elevatorRotations, STOW_UPPER.pivotRotations, 0, 0, "High Pre-Scrub", null),
+        LOW_PRE_SCRUB(L4_INTERMEDIATE.elevatorRotations, STOW_UPPER.pivotRotations, 0, 0, "Low Pre-Scrub", null),
         CLIMB_STOW(0.1, 0.06125, 0, 0, "Stow Climb", null),
         MANUAL_OVERRIDE(0.3, 0, 0, 0, "None", null); // being manually overridden to something
         public double elevatorRotations;
