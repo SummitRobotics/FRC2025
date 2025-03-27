@@ -1,6 +1,7 @@
 #!/bin/bash
 PATHS=(
   "./src/main/deploy/pathplanner/paths/1L.path"
+  "./src/main/deploy/pathplanner/paths/1LB.path"
   "./src/main/deploy/pathplanner/paths/1L1.path"
   "./src/main/deploy/pathplanner/paths/LeftStation.path"
   "./src/main/deploy/pathplanner/paths/ThreePieceLeftA.path"
