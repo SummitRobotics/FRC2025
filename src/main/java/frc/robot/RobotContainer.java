@@ -290,6 +290,18 @@ public class RobotContainer {
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE", AutoPlace.getScrubPose(HexSide.SIX), false)
                 )
             );
+            autoChooser.addOption(
+                "Left Zero Scrub",
+                new SequentialCommandGroup(
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftStart", false, true, false),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftA", SuperstructurePreset.MANUAL_OVERRIDE, false),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftB", true, true, false),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftC", SuperstructurePreset.MANUAL_OVERRIDE, false),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftD", true, true, false),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE", SuperstructurePreset.MANUAL_OVERRIDE, false),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.MANUAL_OVERRIDE, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftF", true, true, false)
+                )
+            );
             // autoChooser.addOption(
                 // "Left L3",
                 // new SequentialCommandGroup(
@@ -304,7 +316,15 @@ public class RobotContainer {
             // );
             autoChooser.addOption(
                 "Center",
-                new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FOUR, Side.LEFT, SuperstructurePreset.STOW_UPPER), "", false, true, false)
+                new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FOUR, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "", false, true, false)
+            );
+            autoChooser.addOption(
+                "Center Three Scrub",
+                new SequentialCommandGroup(
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FOUR, Side.LEFT, AutoPlace.getScrubPose(HexSide.FOUR)), "", false, true, false).withTimeout(3.5),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.MANUAL_OVERRIDE, HexSide.THREE, Side.RIGHT, AutoPlace.getScrubPose(HexSide.THREE)), "CenterA", false, true, false).withTimeout(4),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.MANUAL_OVERRIDE, HexSide.FIVE, Side.LEFT, AutoPlace.getScrubPose(HexSide.FIVE)), "CenterB", false, true, false).withTimeout(5)
+                )
             );
             autoChooser.addOption(
                 "Right",
