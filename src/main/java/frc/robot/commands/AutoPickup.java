@@ -97,7 +97,7 @@ public class AutoPickup extends SequentialCommandGroup {
                         new ConditionalCommand(
                             scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations),
                             new SequentialCommandGroup(
-                                scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS / 4).withTimeout(1),
+                                scrubber.set(() -> Constants.Scrubber.MAX_ROTATIONS / 2).withTimeout(1),
                                 scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations)
                             ),
                             () -> scrub == SuperstructurePreset.MANUAL_OVERRIDE

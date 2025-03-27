@@ -279,6 +279,17 @@ public class RobotContainer {
                     new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE", AutoPlace.getScrubPose(HexSide.SIX), false)
                 )
             );
+            autoChooser.addOption(
+                "Left Two Scrub",
+                new SequentialCommandGroup(
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.FIVE, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftStart", false, true, false),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftA", AutoPlace.getScrubPose(HexSide.FIVE), false),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.LEFT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftB", true, true, false),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftC", SuperstructurePreset.MANUAL_OVERRIDE, false),
+                    new AutoPlace(drivetrain, superstructure, scrubber, new Node(SuperstructurePreset.L4, HexSide.SIX, Side.RIGHT, SuperstructurePreset.MANUAL_OVERRIDE), "ThreePieceLeftD", true, true, false),
+                    new AutoPickup(drivetrain, superstructure, scrubber, () -> CoralStationSide.LEFT, "ThreePieceLeftE", AutoPlace.getScrubPose(HexSide.SIX), false)
+                )
+            );
             // autoChooser.addOption(
                 // "Left L3",
                 // new SequentialCommandGroup(
