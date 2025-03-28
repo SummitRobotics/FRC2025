@@ -188,7 +188,7 @@ public class RobotContainer {
         lChooser.addOption("L4", SuperstructurePreset.L4);
         lChooser.addOption("L3", SuperstructurePreset.L3);
         lChooser.addOption("L2", SuperstructurePreset.L2);
-        lChooser.addOption("L1", SuperstructurePreset.L1);
+        // lChooser.addOption("L1", SuperstructurePreset.L1);
         lChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
         hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
         hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
@@ -520,11 +520,11 @@ public class RobotContainer {
         // Alternative receive entry by the driver
         driverController.rightBumper().onTrue(
             new SequentialCommandGroup(
-                new InstantCommand(() -> {
-                    superstructure.setDefaultCommand(
-                        superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
-                    );
-                }),
+                // new InstantCommand(() -> {
+                    // superstructure.setDefaultCommand(
+                        // superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
+                    // );
+                // }),
                 scrubber.set(() -> Constants.Scrubber.GEAR_RATIO * SuperstructurePreset.STOW_LOWER.pivotRotations).until(scrubber::safe),
                 superstructure.setPresetWithAutoCenter(SuperstructurePreset.RECEIVE)
             )
