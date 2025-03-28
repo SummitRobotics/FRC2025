@@ -208,12 +208,13 @@ public class RobotContainer {
         lastReef = hexSideChooser.getSelected();
         lastBackwards = false;
         rebindAutoPlace = () -> {
+            SuperstructurePreset l = lChooser.getSelected();
             driverController.leftBumper().whileTrue(new AutoPlace(
                 drivetrain,
                 superstructure,
                 scrubber,
                 new Node(
-                    lChooser.getSelected(),
+                    l,
                     getHex(),
                     leftRightChooser.getSelected(),
                     (scrubChooser.getSelected() ? AutoPlace.getScrubPose(getHex()) : SuperstructurePreset.MANUAL_OVERRIDE)
@@ -221,7 +222,7 @@ public class RobotContainer {
                     .finallyDo(() -> {
                         // CommandScheduler.getInstance().schedule(
                         superstructure.setDefaultCommand(
-                            superstructure.setPreset(lChooser.getSelected() == SuperstructurePreset.L1
+                            superstructure.setPreset(l == SuperstructurePreset.L1
                                 ? SuperstructurePreset.STOW_LOWER : SuperstructurePreset.STOW_UPPER)
                         );
                     })
