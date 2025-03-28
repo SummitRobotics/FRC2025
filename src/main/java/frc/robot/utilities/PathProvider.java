@@ -18,7 +18,7 @@ public class PathProvider {
         for (String pathName : pathNames) {
             try {
                 preloadedPaths.put(pathName, PathPlannerPath.fromPathFile(pathName));
-                System.out.println("Path successfully loaded from file: " + pathName);
+                // System.out.println("Path successfully loaded from file: " + pathName);
             } catch (Exception e) {
                 System.err.println("Failed to load path: " + pathName);
                 e.printStackTrace();
@@ -40,13 +40,13 @@ public class PathProvider {
             try {
                 path = PathPlannerPath.fromPathFile(pathName);
                 preloadedPaths.put(pathName, path); // Cache the loaded path for future use
-                System.out.println("Path successfully loaded from file: " + pathName);
+                // System.out.println("Path successfully loaded from file: " + pathName);
             } catch (Exception e) {
                 System.err.println("Failed to load path from file: " + pathName);
                 e.printStackTrace();
             }
         } else {
-            System.out.println("Path successfully loaded from cache: " + pathName);
+            // System.out.println("Path successfully loaded from cache: " + pathName);
         }
     
         return path;
