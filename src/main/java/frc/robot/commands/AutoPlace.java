@@ -96,6 +96,46 @@ public class AutoPlace extends SequentialCommandGroup {
         public String toString() {
             return "Hex: " + hexSide.name + ", Side: " + side.name + ", L: " + l.description + ", Scrub: " + scrub.description;
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            System.out.println("Compared nodes!");
+            if (obj == null) return false;
+            if (obj.getClass() != this.getClass()) return false;
+            final Node other = (Node) obj;
+            return this.l == other.l && this.side == other.side && this.hexSide == other.hexSide && this.scrub == other.scrub;
+        }
+        
+        public int getHash() {
+            int lNum = switch (l) {
+                case L4 -> 4;
+                case L3 -> 3;
+                case L2 -> 2;
+                case L1 -> 1;
+                default -> 0;
+            };
+            int hexSideNum = switch (hexSide) {
+                case SIX -> 6;
+                case FIVE -> 5;
+                case FOUR -> 4;
+                case THREE -> 3;
+                case TWO -> 2;
+                case ONE -> 1;
+                default -> 0;
+            };
+            int leftRightNum = switch (side) {
+                case LEFT -> 2;
+                case RIGHT -> 1;
+                default -> 0;
+            };
+            int scrubNum = switch (scrub) {
+                case L3_SCRUB -> 2;
+                case STOW_UPPER -> 1;
+                default -> 0;
+            };
+
+            return (scrubNum + (10 * leftRightNum) + (100 * hexSideNum) + (1000 * lNum));
+        }
     }
 
     public static SuperstructurePreset getScrubPose(HexSide hexSide) {
@@ -193,10 +233,10 @@ public class AutoPlace extends SequentialCommandGroup {
                     ),
                     // If going to L4 then use L4 intermediate
                     superstructure.setManual(
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.5, 15)
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15)
                             ? SuperstructurePreset.L4.elevatorRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.elevatorRotations,
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.5, 15) 
+                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15) 
                             ? SuperstructurePreset.L4.pivotRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.pivotRotations,
                         () -> 0,

@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
@@ -49,11 +50,13 @@ import frc.robot.subsystems.Superstructure.SuperstructurePreset;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.PathProvider;
 import frc.robot.utilities.lists.Constants;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 public class RobotContainer {
@@ -121,9 +124,6 @@ public class RobotContainer {
     private final SendableChooser<Boolean> scrubChooser;
     private final SendableChooser<Boolean> reefChoiceAssist;
     // private final SendableChooser<Boolean> backwardsChooser;
-    private HexSide lastReef;
-    private boolean lastBackwards;
-    private Runnable rebindAutoPlace;
 
     // Auto
     private final SendableChooser<CoralStationSide> autoCoralStationChoice;
@@ -205,31 +205,33 @@ public class RobotContainer {
         reefChoiceAssist.addOption("Yes", true);
         // backwardsChooser.setDefaultOption("No", false);
         // backwardsChooser.addOption("Yes", true);
-        lastReef = hexSideChooser.getSelected();
-        lastBackwards = false;
-        rebindAutoPlace = () -> {
-            driverController.leftBumper().whileTrue(new AutoPlace(
-                drivetrain,
-                superstructure,
-                scrubber,
-                new Node(
-                    lChooser.getSelected(),
-                    getHex(),
-                    leftRightChooser.getSelected(),
-                    (scrubChooser.getSelected() ? AutoPlace.getScrubPose(getHex()) : SuperstructurePreset.MANUAL_OVERRIDE)
-                ), "", false, false, getBackwards(), false)
-                    .finallyDo(() -> {
-                        // CommandScheduler.getInstance().schedule(
-                        superstructure.setDefaultCommand(
-                            superstructure.setPreset(lChooser.getSelected() == SuperstructurePreset.L1
-                                ? SuperstructurePreset.STOW_LOWER : SuperstructurePreset.STOW_UPPER)
-                        );
-                    })
-                );
-        };
-        lChooser.onChange((SuperstructurePreset l) -> rebindAutoPlace.run());
-        leftRightChooser.onChange((Side leftRight) -> rebindAutoPlace.run());
-        scrubChooser.onChange((Boolean doScrub) -> rebindAutoPlace.run());
+
+        // Cached auto-scoring commands
+        Map<Integer, Command> autoPlaceMap = new HashMap<Integer, Command>();
+        for (SuperstructurePreset l :
+            List.of(SuperstructurePreset.L4, SuperstructurePreset.L3, SuperstructurePreset.L2, SuperstructurePreset.L1, SuperstructurePreset.MANUAL_OVERRIDE)
+        ) {
+            for (Side side : Side.values()) {
+                for (HexSide hexSide : HexSide.values()) {
+                    for (SuperstructurePreset scrub : 
+                        List.of(SuperstructurePreset.STOW_UPPER, SuperstructurePreset.L3_SCRUB, SuperstructurePreset.MANUAL_OVERRIDE)
+                    ) {
+                        Node node = new Node(l, hexSide, side, scrub);
+                        autoPlaceMap.put(node.getHash(), new AutoPlace(
+                            drivetrain, superstructure, scrubber, node, "", false, false, false, false
+                        ));
+                    }
+                }
+            }
+        }
+
+
+        driverController.leftBumper().whileTrue(
+            new SelectCommand<Integer>(
+                autoPlaceMap,
+                this::getSelectedNodeHash
+            )
+        );
 
         // Combinatoric auto-chooser thing
         autoCoralStationChoice = new SendableChooser<CoralStationSide>();
@@ -541,10 +543,6 @@ public class RobotContainer {
         buttonBox.getTrigger(Button.GO_PRESET).onTrue(superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(superstructure.getState())));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        driverController.leftBumper().whileTrue(new AutoPlace(drivetrain, superstructure, scrubber,
-            new Node(lChooser.getSelected(), getHex(), leftRightChooser.getSelected(),
-            scrubChooser.getSelected() ? AutoPlace.getScrubPose(getHex()) : SuperstructurePreset.MANUAL_OVERRIDE
-        ), "", false, false, getBackwards(), false));
         driverController.y().whileTrue(new AutoPickup(drivetrain, superstructure, scrubber, () -> AutoPickup.getCoralSide(drivetrain.getState().Pose)));
         driverController.x().whileTrue(new AlignRequestToF(drivetrain, superstructure.getToFLeft(), superstructure.getToFRight()));
         // Put upward after receive
@@ -600,13 +598,6 @@ public class RobotContainer {
 
     public void robotPeriodic() {
         buttonBox.sendMessage();
-
-        // Rebinds for reef assist
-        if (lastReef != getHex() || lastBackwards != getBackwards()) {
-            rebindAutoPlace.run();
-            lastReef = getHex();
-            lastBackwards = getBackwards();
-        }
 
         // Update Field2d object
         field.setRobotPose(drivetrain.getState().Pose);
@@ -786,12 +777,22 @@ public class RobotContainer {
         dualRateBreakpoint = newBreakpoint;
     }
 
+    private int getSelectedNodeHash() {
+        Node node = new Node(
+            lChooser.getSelected(),
+            getHex(),
+            leftRightChooser.getSelected(),
+            (scrubChooser.getSelected() ? AutoPlace.getScrubPose(getHex()) : SuperstructurePreset.MANUAL_OVERRIDE)
+        );
+        return node.getHash();
+    }
+
     private HexSide getHex() {
         return reefChoiceAssist.getSelected() ? AutoPlace.chooseReefSide(drivetrain.getState().Pose) : hexSideChooser.getSelected();
     }
 
-    private boolean getBackwards() {
+    // private boolean getBackwards() {
         // return /*backwardsChooser.getSelected() &&*/ Math.abs(drivetrain.getState().Pose.getRotation().minus(getHex().leftPlace.getRotation()).getDegrees()) > 90;
-        return false;
-    }
+        // return false;
+    // }
 }
