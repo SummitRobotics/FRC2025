@@ -555,7 +555,7 @@ public class RobotContainer {
             .and(superstructure.getCoralSensorIntake())
             .and(superstructure.getCoralSensorPlace())
             .and(() -> !DriverStation.isAutonomous())
-            .and(() -> flipUpTimer.hasElapsed(1))
+            .and(() -> flipUpTimer.hasElapsed(0.5))
             .and(driverController.rightBumper().negate())
             .onTrue(
                 superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER)
