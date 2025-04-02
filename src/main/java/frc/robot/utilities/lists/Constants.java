@@ -8,7 +8,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 public class Constants {
 
     // Flag to enable/disable driver controller tuning
-    public static boolean ENABLE_DRIVER_CONTROLLER_TUNING = true;
+    public static boolean ENABLE_DRIVER_CONTROLLER_TUNING = false;
 
     public static boolean DEBUG_LOG_ENABLED = false;
 

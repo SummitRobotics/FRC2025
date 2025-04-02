@@ -233,10 +233,10 @@ public class AutoPlace extends SequentialCommandGroup {
                     ),
                     // If going to L4 then use L4 intermediate
                     superstructure.setManual(
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15)
+                        () -> Functions.poseInTolerance(Functions.mirrorPoseToRed(node.getPose()), drivetrain.getState().Pose, 0.3, 15)
                             ? SuperstructurePreset.L4.elevatorRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.elevatorRotations,
-                        () -> Functions.poseInTolerance(node.getPose(), drivetrain.getState().Pose, 0.3, 15) 
+                        () -> Functions.poseInTolerance(Functions.mirrorPoseToRed(node.getPose()), drivetrain.getState().Pose, 0.3, 15) 
                             ? SuperstructurePreset.L4.pivotRotations
                             : SuperstructurePreset.L4_INTERMEDIATE.pivotRotations,
                         () -> 0,
