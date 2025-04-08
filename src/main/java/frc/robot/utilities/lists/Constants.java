@@ -107,7 +107,7 @@ public class Constants {
             kS = 0,
             kV = 1.2,
             kA = 0,
-            MAX_ROTATIONS = 210,
+            MAX_ROTATIONS = 150,
             BACK_ROTATIONS = -50.5,
             MAX_VELOCITY_IN = 180,
             MAX_ACCEL_IN = 200,
