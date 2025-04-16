@@ -178,9 +178,12 @@ public class AutoPlace extends SequentialCommandGroup {
         String pathName = "";
         // Name format is [side number][L/R] (e.g. 4R)
         pathName += node.hexSide.name;
-        pathName += node.side.name;
         // If the node is L1, append 1 to the path name
-        if (node.l == SuperstructurePreset.L1) pathName += "1";
+        if (node.l != SuperstructurePreset.L1) {
+            pathName += node.side.name;
+        } else {
+            pathName += "L1";
+        }
         // Backwards placement (supported for L4 and L3)
         if (backwards && (node.l == SuperstructurePreset.L4 || node.l == SuperstructurePreset.L3)) pathName += "B";
         try {
@@ -222,10 +225,10 @@ public class AutoPlace extends SequentialCommandGroup {
                                 () -> !backwards
                             ),
                             // L1
-                            new SequentialCommandGroup(
-                                superstructure.setPresetWithBeltOverride(node.l, () -> 0.3, () -> 0.3).withTimeout(0),
-                                superstructure.setPreset(node.l)
-                            ),
+                            // new SequentialCommandGroup(
+                                // superstructure.setPresetWithBeltOverride(node.l, () -> 0.3, () -> 0.3).withTimeout(0),
+                                superstructure.setPresetWithAutoCenter(node.l),
+                            // ),
                             () -> node.l != SuperstructurePreset.L1
                         ),
                         superstructure.setPresetWithAutoCenter(SuperstructurePreset.STOW_UPPER),
@@ -253,8 +256,8 @@ public class AutoPlace extends SequentialCommandGroup {
             // If going backwards rock the coral backwards too for the extra travel distance and speed
             new ConditionalCommand(
                 superstructure.setPreset(node.l),
-                superstructure.setPresetRockBackwards(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
-                () -> !backwards
+                superstructure.setPreset(SuperstructurePreset.getCorrespondingBackwardsState(node.l)),
+                () -> !backwards && node.l != SuperstructurePreset.L1
             )/*.until(superstructure::atSetpoint)*/.withTimeout(node.l == SuperstructurePreset.L4 ? 0.3 : 0),
             // Wait some time if going to L4 (to allow the wrist to achieve pose)
             new WaitCommand((node.l == SuperstructurePreset.L4) ? 0 : 0),
@@ -273,7 +276,7 @@ public class AutoPlace extends SequentialCommandGroup {
                 new ConditionalCommand(
                     superstructure.setPreset(SuperstructurePreset.getCorrespondingGoState(node.l)),
                     superstructure.setPreset(SuperstructurePreset.getCorrespondingBackwardsGo(node.l)),
-                    () -> !backwards
+                    () -> !backwards && node.l != SuperstructurePreset.L1
                 )
                 // )
             )
@@ -299,19 +302,21 @@ public class AutoPlace extends SequentialCommandGroup {
                 new SequentialCommandGroup(
                     superstructure.setPreset(node.scrub).withTimeout(1),
                     superstructure.setPreset(SuperstructurePreset.STOW_UPPER)
-                ),
-                new ConditionalCommand(
-                    new SequentialCommandGroup(
-                        new WaitCommand(1),
-                        new InstantCommand(() -> {
-                            drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-0.5));
-                        }).repeatedly().withTimeout(0.5)
-                    ),
-                    Commands.none(),
-                    () -> suppliedPathName.isEmpty() || backUp
                 )
             )
         );
+
+        ConditionalCommand backUpCommand =
+            new ConditionalCommand(
+                new SequentialCommandGroup(
+                    new WaitCommand(1),
+                    new InstantCommand(() -> {
+                        drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-0.5));
+                    }).repeatedly().withTimeout(0.5)
+                ),
+                Commands.none(),
+                () -> suppliedPathName.isEmpty() || backUp
+            );
 
         if (!Utils.isSimulation()) {
             // Move the robot to desired position, stowing scrubber along the way
@@ -324,6 +329,8 @@ public class AutoPlace extends SequentialCommandGroup {
                 // Scrub an algea
                 addCommands(scrub);
             }
+            // This is already a ConditionalCommand so it'll do the condition check
+            addCommands(backUpCommand);
         } else {
             // Simplified place in simulation
             addCommands(

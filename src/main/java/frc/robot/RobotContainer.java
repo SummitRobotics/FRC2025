@@ -188,7 +188,7 @@ public class RobotContainer {
         lChooser.addOption("L4", SuperstructurePreset.L4);
         lChooser.addOption("L3", SuperstructurePreset.L3);
         lChooser.addOption("L2", SuperstructurePreset.L2);
-        // lChooser.addOption("L1", SuperstructurePreset.L1);
+        lChooser.addOption("L1", SuperstructurePreset.L1);
         lChooser.setDefaultOption("None", SuperstructurePreset.MANUAL_OVERRIDE);
         hexSideChooser.setDefaultOption("1", AutoPlace.HexSide.ONE);
         hexSideChooser.addOption("2", AutoPlace.HexSide.TWO);
@@ -218,7 +218,8 @@ public class RobotContainer {
                     ) {
                         Node node = new Node(l, hexSide, side, scrub);
                         autoPlaceMap.put(node.getHash(), new AutoPlace(
-                            drivetrain, superstructure, scrubber, node, "", false, false, false, false
+                            drivetrain, superstructure, scrubber, node, "", false, false, false,
+                            node.l == SuperstructurePreset.L1
                         ));
                     }
                 }
