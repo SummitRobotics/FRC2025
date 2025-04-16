@@ -308,14 +308,20 @@ public class AutoPlace extends SequentialCommandGroup {
 
         ConditionalCommand backUpCommand =
             new ConditionalCommand(
-                new SequentialCommandGroup(
-                    new WaitCommand(1),
+                new ConditionalCommand(
+                    new SequentialCommandGroup(
+                        new WaitCommand(1),
+                        new InstantCommand(() -> {
+                            drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-0.75));
+                        }).repeatedly().withTimeout(0.5)
+                    ),
                     new InstantCommand(() -> {
-                        drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-0.5));
-                    }).repeatedly().withTimeout(0.5)
+                        drivetrain.setControl(new SwerveRequest.RobotCentric().withVelocityX(-1));
+                    }).repeatedly().withTimeout(0.5),
+                    () -> node.scrub != SuperstructurePreset.MANUAL_OVERRIDE
                 ),
                 Commands.none(),
-                () -> suppliedPathName.isEmpty() || backUp
+                () -> (suppliedPathName.isEmpty() && node.scrub != SuperstructurePreset.MANUAL_OVERRIDE) || backUp
             );
 
         if (!Utils.isSimulation()) {
