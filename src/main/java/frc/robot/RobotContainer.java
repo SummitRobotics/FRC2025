@@ -493,7 +493,7 @@ public class RobotContainer {
         // driverController.start().and(driverController.x()).whileTrue(superstructure.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        driverController.b().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverController.b().onTrue(drivetrain.runOnce(() -> drivetrain.reSeed()));
 
         // Superstructure MOs
         buttonBox.getTrigger(Button.MO_PRESET).whileTrue(superstructure.setManual(

@@ -253,6 +253,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return m_sysIdRoutineToApply.dynamic(direction);
     }
 
+    public void reSeed() {
+        m_hasAppliedOperatorPerspective = false;
+    }
+
     @Override
     public void periodic() {
         /*
@@ -264,7 +268,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
          */
         // Initial seeding with MT1, then use MT2 for the rest of the match
         LimelightHelpers.PoseEstimate seedEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightNames[0]);
-        if (!m_hasAppliedOperatorPerspective && seedEstimate != null && seedEstimate.tagCount > 0/*|| DriverStation.isDisabled()*/) {
+        if (!m_hasAppliedOperatorPerspective && seedEstimate != null && seedEstimate.tagCount > 0 && DriverStation.isDSAttached()/*|| DriverStation.isDisabled()*/) {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
                 setOperatorPerspectiveForward(
                     allianceColor == Alliance.Red
